@@ -1,0 +1,33 @@
+"""Central configuration. Every balance value lives here (no magic numbers elsewhere)."""
+
+# --- Map ---
+GRID_SIZE = 15
+
+# --- Eleven ---
+MAX_HP = 5
+START_POWER = 0
+MAX_POWER = 10
+
+# --- Combat (used from Phase 4) ---
+DEMOGORGON_DAMAGE = 1
+VECNA_DAMAGE = 2
+DEMOGORGON_ATTACK_COST = 1
+DEMOGORGON_REWARD = 2
+DEMOGORGON_COOLDOWN = 1          # decision: 1-turn cooldown after a hit (simpler than knockback)
+FINAL_POWER_REQUIREMENT = 6
+
+# --- Abilities (used from Phase 4) ---
+ABILITY_USES = {"RADAR": 2, "SPEED": 1, "TELEPORT": 1, "FREEZE": 1}
+ABILITY_DURATIONS = {"SPEED": 3, "FREEZE": 2}
+FRIEND_ABILITY = {"Dustin": "RADAR", "Lucas": "SPEED", "Mike": "TELEPORT", "Will": "FREEZE"}
+
+# --- AI parameters (used from Phase 3+) ---
+MINIMAX_DEPTH = 4
+ELEVEN_MCTS_SIMULATIONS = 300
+MINDFLAYER_MCTS_SIMULATIONS = 150
+MCTS_EXPLORATION = 1.41
+MCTS_ROLLOUT_DEPTH = 15
+
+# --- Game flow ---
+MAX_TURNS = 150
+RNG_SEED = 42
