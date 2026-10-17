@@ -7,7 +7,7 @@ from game.board import Terrain
 from game.state import GameState, Winner
 
 CELL = 40
-HUD_H = 60
+HUD_H = 84
 BG = (8, 10, 22)
 COLORS = {
     Terrain.FLOOR: (22, 26, 44), Terrain.WALL: (4, 4, 10),
@@ -54,14 +54,18 @@ def draw(surf: pygame.Surface, state: GameState, font, big_font) -> None:
         if name not in state.rescued:
             _marker(surf, p, (240, 200, 60), name[0], font)
     for d in state.living_demogorgons():
-        _marker(surf, d.pos, (170, 60, 60), "G", font, "square")
+        # purple = temporary Mind Flayer creature (gives no power)
+        _marker(surf, d.pos, (150, 70, 200) if d.temporary else (170, 60, 60), "G", font, "square")
     _marker(surf, state.vecna.pos, (140, 0, 20), "V", font, "square")
     _marker(surf, state.eleven_pos, (240, 240, 240), "E", font)
 
     hp = "".join("♥" if i < state.eleven_hp else "·" for i in range(5))
     line = f"HP {state.eleven_hp}  Power {state.eleven_power}  Rescued {len(state.rescued)}/4  Turn {state.turn}"
     surf.blit(font.render(line, True, (230, 230, 240)), (10, 8))
-    surf.blit(font.render("WASD/Arrows: move   Space: wait   R: restart", True, (130, 130, 160)), (10, 34))
+    mf = "DEFEATED" if state.mind_flayer.defeated else ("ACTIVE" if state.mind_flayer.active else "inactive")
+    ms = font.render(f"Mind Flayer: {mf}", True, RED if mf == "ACTIVE" else (130, 130, 160))
+    surf.blit(ms, (10, 32))
+    surf.blit(font.render("WASD/Arrows: move   Space: wait   R: restart", True, (130, 130, 160)), (10, 58))
     if state.game_over:
         msg = "ESCAPED!" if state.winner == Winner.ELEVEN else "ELEVEN FAILED"
         t = big_font.render(msg, True, RED)

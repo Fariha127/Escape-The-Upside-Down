@@ -31,3 +31,9 @@ MCTS_ROLLOUT_DEPTH = 15
 # --- Game flow ---
 MAX_TURNS = 150
 RNG_SEED = 42
+
+# --- Characters (Phase 2) ---
+RESCUE_RANGE = 1                  # Manhattan distance within which Eleven can rescue a friend
+MAX_NORMAL_DEMOGORGONS = 10       # hard cap for normal (power-giving) Demogorgons
+MAX_TEMP_CREATURES = 3            # cap on simultaneous Mind-Flayer-spawned creatures
+FINAL_ATTACK_CONSUMES_POWER = True

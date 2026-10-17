@@ -8,6 +8,9 @@ from typing import Dict, List, Optional, Set
 
 import config
 from game.board import Board, Pos
+from characters.demogorgon import Demogorgon
+from characters.mind_flayer import MindFlayer
+from characters.vecna import Vecna
 
 
 class Phase(Enum):
@@ -23,38 +26,6 @@ class Winner(Enum):
     NONE = "NONE"
     ELEVEN = "ELEVEN"
     ENEMIES = "ENEMIES"
-
-
-@dataclass
-class Demogorgon:
-    id: int
-    pos: Pos
-    alive: bool = True
-    cooldown: int = 0          # turns it cannot damage Eleven after a hit
-    frozen_turns: int = 0
-    temporary: bool = False    # Mind-Flayer spawns: temporary=True -> NEVER gives power
-
-    def clone(self) -> "Demogorgon":
-        return Demogorgon(self.id, self.pos, self.alive, self.cooldown, self.frozen_turns, self.temporary)
-
-
-@dataclass
-class Vecna:
-    pos: Pos
-    frozen_turns: int = 0
-
-    def clone(self) -> "Vecna":
-        return Vecna(self.pos, self.frozen_turns)
-
-
-@dataclass
-class MindFlayer:
-    active: bool = False
-    defeated: bool = False
-    known_eleven_pos: Optional[Pos] = None
-
-    def clone(self) -> "MindFlayer":
-        return MindFlayer(self.active, self.defeated, self.known_eleven_pos)
 
 
 @dataclass
