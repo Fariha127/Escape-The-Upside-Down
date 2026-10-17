@@ -37,3 +37,6 @@ RESCUE_RANGE = 1                  # Manhattan distance within which Eleven can r
 MAX_NORMAL_DEMOGORGONS = 10       # hard cap for normal (power-giving) Demogorgons
 MAX_TEMP_CREATURES = 3            # cap on simultaneous Mind-Flayer-spawned creatures
 FINAL_ATTACK_CONSUMES_POWER = True
+
+# --- A* (Phase 3) ---
+ASTAR_HAZARD_COST = 3     # Eleven's A* treats hazard cells as costlier (>=1 keeps Manhattan admissible)

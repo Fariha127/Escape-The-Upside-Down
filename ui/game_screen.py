@@ -7,7 +7,7 @@ from game.board import Terrain
 from game.state import GameState, Winner
 
 CELL = 40
-HUD_H = 84
+HUD_H = 144
 BG = (8, 10, 22)
 COLORS = {
     Terrain.FLOOR: (22, 26, 44), Terrain.WALL: (4, 4, 10),
@@ -39,7 +39,15 @@ def _marker(surf, pos, color, letter, font, shape="circle"):
     surf.blit(t, t.get_rect(center=(cx, cy)))
 
 
-def draw(surf: pygame.Surface, state: GameState, font, big_font) -> None:
+def _draw_path(surf, path, color, radius=4):
+    for cell in path:
+        cx, cy = cell[0] * CELL + CELL // 2, cell[1] * CELL + CELL // 2 + HUD_H
+        pygame.draw.circle(surf, color, (cx, cy), radius)
+
+
+def draw(surf: pygame.Surface, state: GameState, font, big_font, small_font=None, overlay=None) -> None:
+    """overlay (optional debug info): {'demogorgon_paths': {id: [cells]}, 'eleven_path': [cells],
+    'stats': [text lines]} - all values come from real A* runs."""
     surf.fill(BG)
     b = state.board
     for y in range(b.height):
@@ -49,6 +57,10 @@ def draw(surf: pygame.Surface, state: GameState, font, big_font) -> None:
             pygame.draw.rect(surf, GRID_LINE, r, 1)
     for c in state.corrupted:
         pygame.draw.rect(surf, (120, 0, 120), (c[0] * CELL + 3, c[1] * CELL + HUD_H + 3, CELL - 6, CELL - 6), 2)
+    if overlay:
+        for path in overlay.get("demogorgon_paths", {}).values():
+            _draw_path(surf, path, (200, 70, 70), 3)
+        _draw_path(surf, overlay.get("eleven_path", []), (80, 220, 255), 5)
     _marker(surf, state.portal_pos, (80, 200, 255) if state.portal_active else (40, 80, 110), "P", font, "square")
     for name, p in state.friend_positions.items():
         if name not in state.rescued:
@@ -65,7 +77,11 @@ def draw(surf: pygame.Surface, state: GameState, font, big_font) -> None:
     mf = "DEFEATED" if state.mind_flayer.defeated else ("ACTIVE" if state.mind_flayer.active else "inactive")
     ms = font.render(f"Mind Flayer: {mf}", True, RED if mf == "ACTIVE" else (130, 130, 160))
     surf.blit(ms, (10, 32))
-    surf.blit(font.render("WASD/Arrows: move   Space: wait   R: restart", True, (130, 130, 160)), (10, 58))
+    sf = small_font or font
+    surf.blit(sf.render("WASD/Arrows move | Space wait | N auto-step (A*) | P paths | R restart",
+                        True, (130, 130, 160)), (10, 58))
+    for i, line in enumerate((overlay or {}).get("stats", [])):
+        surf.blit(sf.render(line, True, (150, 200, 160)), (10, 78 + 16 * i))
     if state.game_over:
         msg = "ESCAPED!" if state.winner == Winner.ELEVEN else "ELEVEN FAILED"
         t = big_font.render(msg, True, RED)

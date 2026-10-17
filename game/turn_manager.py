@@ -4,14 +4,21 @@ The 14-step turn from the spec is laid out as explicit methods. Steps whose feat
 later phases are clearly marked placeholders that do nothing yet (no fake behaviour)."""
 from __future__ import annotations
 
-from game.actions import Action
-from game.rules import apply_eleven_action, check_win_loss
+from typing import Optional
+
+from ai.demogorgon_ai import DemogorgonAI
+from ai.metrics import Metrics
+from game.actions import Action, MOVE_DELTAS
+from game.rules import apply_eleven_action, can_enemy_enter, check_win_loss
 from game.state import GameState, Phase
 
 
 class TurnManager:
-    def __init__(self, state: GameState):
+    def __init__(self, state: GameState, metrics: Optional[Metrics] = None,
+                 demogorgon_ai: Optional[DemogorgonAI] = None):
         self.state = state
+        self.metrics = metrics or Metrics()
+        self.demogorgon_ai = demogorgon_ai or DemogorgonAI(self.metrics)
 
     def step(self, eleven_action: Action) -> bool:
         """Run one full turn. Returns False (and changes nothing) if Eleven's action is illegal."""
@@ -51,9 +58,24 @@ class TurnManager:
 
     # ---- placeholders (implemented in later phases) ----
     def _resolve_eleven_interactions(self) -> None: pass
-    def _demogorgon_phase(self) -> None: pass
     def _vecna_phase(self) -> None: pass
     def _mind_flayer_phase(self) -> None: pass
+
+    # ---- steps 4-5: Demogorgons (A*) ----
+    def _demogorgon_phase(self) -> None:
+        """Demogorgons act one at a time in id order, so each sees earlier moves (consistent
+        collisions). Frozen ones skip. ATTACK is a hook: damage is resolved in Phase 4."""
+        s = self.state
+        for d in sorted(s.living_demogorgons(), key=lambda x: x.id):
+            if d.is_frozen:
+                continue
+            action = self.demogorgon_ai.choose_action(s, d)
+            if action in MOVE_DELTAS:
+                dx, dy = MOVE_DELTAS[action]
+                dest = (d.pos[0] + dx, d.pos[1] + dy)
+                if can_enemy_enter(s, dest):
+                    d.pos = dest
+            # Action.ATTACK -> Phase 4
 
     # ---- implemented now ----
     def _update_timers(self) -> None:

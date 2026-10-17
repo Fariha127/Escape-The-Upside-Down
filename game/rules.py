@@ -17,6 +17,12 @@ def can_eleven_enter(state: GameState, p: Pos) -> bool:
     return not state.is_blocked(p) and p not in state.enemy_positions()
 
 
+def can_enemy_enter(state: GameState, p: Pos) -> bool:
+    """Same collision rule for every enemy: no walls/corruption, no other character's cell."""
+    return (not state.is_blocked(p) and p not in state.enemy_positions()
+            and p != state.eleven_pos)
+
+
 def legal_eleven_actions(state: GameState) -> List[Action]:
     """Only legal actions are returned. WAIT is always legal while the game is running."""
     if state.game_over:
