@@ -11,18 +11,22 @@ from abilities import radar, speed
 from ai.demogorgon_ai import DemogorgonAI
 from ai.metrics import Metrics
 from ai.radar_scan import RadarReading, scan
+from ai.vecna_ai import VecnaAI
 from game.actions import Action, MOVE_DELTAS
 from game.board import Pos
 from game.rules import apply_eleven_action, can_enemy_enter, check_win_loss, demogorgon_hit
 from game.state import GameState, Phase
+from game.vecna_rules import apply_vecna_action
 
 
 class TurnManager:
     def __init__(self, state: GameState, metrics: Optional[Metrics] = None,
-                 demogorgon_ai: Optional[DemogorgonAI] = None):
+                 demogorgon_ai: Optional[DemogorgonAI] = None,
+                 vecna_ai: Optional[VecnaAI] = None):
         self.state = state
         self.metrics = metrics or Metrics()
         self.demogorgon_ai = demogorgon_ai or DemogorgonAI(self.metrics)
+        self.vecna_ai = vecna_ai or VecnaAI(self.metrics)
         self.radar_readings: List[RadarReading] = []   # current Radar report (empty when Radar is off)
 
     def can_bonus_move(self) -> bool:
@@ -54,7 +58,7 @@ class TurnManager:
             # 4-5. Demogorgons (A*)
             s.phase = Phase.DEMOGORGONS
             self._demogorgon_phase()
-            # 6-8. Vecna (Minimax + Alpha-Beta)            -> Phase 5
+            # 6-8. Vecna (Minimax + Alpha-Beta)
             s.phase = Phase.VECNA
             self._vecna_phase()
             # 9-10. Mind Flayer (MCTS), only if active     -> Phase 7
@@ -88,7 +92,6 @@ class TurnManager:
         return apply_eleven_action(trial, bonus_action)
 
     # ---- placeholders (implemented in later phases) ----
-    def _vecna_phase(self) -> None: pass
     def _mind_flayer_phase(self) -> None: pass
 
     # ---- step 3 ----
@@ -100,6 +103,16 @@ class TurnManager:
     def _update_radar(self) -> None:
         """While Radar is active, run one real A* search per enemy; otherwise clear the report."""
         self.radar_readings = scan(self.state, self.metrics) if radar.is_active(self.state) else []
+
+    # ---- steps 6-8: Vecna (Minimax + Alpha-Beta) ----
+    def _vecna_phase(self) -> None:
+        """Vecna plans with a real depth-limited Minimax search on clones of the state, then acts
+        (move, hit or wait) on the live state. A frozen Vecna skips the turn and runs no search."""
+        s = self.state
+        if s.eleven_hp <= 0 or s.vecna.is_frozen:
+            return
+        action = self.vecna_ai.choose_action(s)
+        apply_vecna_action(s, action)
 
     # ---- steps 4-5: Demogorgons (A*) ----
     def _demogorgon_phase(self) -> None:

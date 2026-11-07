@@ -1,4 +1,4 @@
-"""Escape the Upside Down - Phase 4 entry point. Run: python main.py
+"""Escape the Upside Down - entry point (Phase 5: Vecna plays with Minimax + Alpha-Beta). Run: python main.py
 
 Human controls: WASD/arrows move | Space wait | E attack adjacent Demogorgon | F rescue a friend in range
 1 Radar | 2 Speed | 3 Teleport (then click a highlighted cell, Esc cancels) | 4 Freeze | X final attack
@@ -24,16 +24,22 @@ def new_game():
 
 
 def stats_lines(tm, nav):
-    """Two short lines per A* user, straight from the recorded search statistics."""
+    """Stat lines for the HUD, straight from the recorded search statistics (nothing is estimated)."""
     out = []
     for role, label in (("demogorgon", "Demogorgon A*"), ("eleven", "Eleven A*"), ("radar", "Radar A*")):
         st = tm.metrics.astar.get(role)
         if not st:
             continue
-        last = st.last
-        out.append(f"{label}: {st.calls} searches, {st.nodes_explored} nodes, {st.cache_hits} reused")
-        res = f"path {last.path_length}" if last.found else "no path"
-        out.append(f"  last: {res}, {last.nodes_explored} nodes, {last.time_ms:.2f} ms")
+        reused = f", {st.cache_hits} reused" if st.cache_hits else ""
+        out.append(f"{label}: {st.calls} searches, {st.nodes_explored} nodes, avg {st.avg_time_ms:.2f} ms{reused}")
+    mm = tm.metrics.minimax
+    if mm.calls:
+        last = mm.last
+        mode = "AB" if last.alpha_beta else "plain"
+        out.append(f"Vecna Minimax {mode} d{last.depth}: {mm.calls} searches, "
+                   f"{mm.nodes_evaluated} evaluated, {mm.branches_pruned} pruned")
+        out.append(f"  last: {last.action.value} score {last.score:.1f}, {last.nodes_evaluated} evaluated, "
+                   f"{last.branches_pruned} pruned, {last.time_ms:.2f} ms")
     return out
 
 
