@@ -46,6 +46,17 @@ SPEED_MOVES_PER_TURN = 2         # Eleven's moves per turn while Speed is active
 TELEPORT_SAFE_DISTANCE = 3       # a Teleport cell must be at least this far (Manhattan) from every enemy
 RESCUE_POWER_BONUS = 3           # power Eleven gains each time she rescues a friend (4 friends = 12)
 
+# --- Phase 5: Vecna (Minimax + Alpha-Beta) ---
+VECNA_ATTACK_RANGE = 1           # Vecna hits Eleven when within this Manhattan distance (no cooldown in the spec)
+VECNA_USE_ALPHA_BETA = True      # False = plain Minimax (used by the experiments)
+VECNA_EVAL_DISTANCE_CAP = 30     # walking distance at which "closeness" counts as zero (2 * GRID_SIZE)
+VECNA_EVAL_WEIGHTS = {           # Vecna's evaluation of a NON-terminal state (always kept inside -49..+49)
+    "HP_LOST": 8,                # per HP Eleven has lost
+    "PROXIMITY": 6,              # up to this much when Vecna stands next to Eleven
+    "RESCUED": 2,                # subtracted per rescued friend (Eleven's progress)
+    "PORTAL_PROGRESS": 4,        # subtracted up to this much when the portal is open and Eleven is near it
+}
+
 # --- A* (Phase 3) ---
 ASTAR_HAZARD_COST = 3     # Eleven's A* treats hazard cells as costlier (>=1 keeps Manhattan admissible)
 
