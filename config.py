@@ -38,6 +38,14 @@ MAX_NORMAL_DEMOGORGONS = 10       # hard cap for normal (power-giving) Demogorgo
 MAX_TEMP_CREATURES = 3            # cap on simultaneous Mind-Flayer-spawned creatures
 FINAL_ATTACK_CONSUMES_POWER = True
 
+# --- Phase 4: combat, hazards, abilities ---
+ATTACK_RANGE = 1                 # Eleven can attack a Demogorgon within this Manhattan distance
+HAZARD_DAMAGE = 1                # HP lost each time Eleven ENTERS a hazard cell
+RADAR_DURATION = 3               # turns Dustin's Radar report stays on after it is used
+SPEED_MOVES_PER_TURN = 2         # Eleven's moves per turn while Speed is active
+TELEPORT_SAFE_DISTANCE = 3       # a Teleport cell must be at least this far (Manhattan) from every enemy
+RESCUE_POWER_BONUS = 3           # power Eleven gains each time she rescues a friend (4 friends = 12)
+
 # --- A* (Phase 3) ---
 ASTAR_HAZARD_COST = 3     # Eleven's A* treats hazard cells as costlier (>=1 keeps Manhattan admissible)
 
