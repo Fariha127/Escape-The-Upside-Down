@@ -1,0 +1,1 @@
+"""Friend abilities (one module each). All are pure functions on GameState."""
