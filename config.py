@@ -57,6 +57,16 @@ VECNA_EVAL_WEIGHTS = {           # Vecna's evaluation of a NON-terminal state (a
     "PORTAL_PROGRESS": 4,        # subtracted up to this much when the portal is open and Eleven is near it
 }
 
+# --- Phase 6: Eleven (MCTS picks a strategic goal, A* walks to it) ---
+MCTS_GOAL_TURNS = 6              # most turns one goal may run inside a simulation (= one tree edge)
+ELEVEN_REPLAN_TURNS = 4          # real game: a goal is kept at most this many turns before MCTS re-plans
+ELEVEN_DANGER_DISTANCE = 2       # an enemy this close (walking distance) is "danger": VECNA_DANGER reward, re-plan trigger
+DANGER_STEP_COST = 5             # extra path cost of a cell where an enemy could hit Eleven this turn
+EVADE_OPEN_WEIGHT = 3            # EVADE prefers open areas over dead ends: up to this many cells of 'safety' bonus
+EVADE_RADIUS = 6                 # EVADE looks for a safe cell within this walking distance
+AI_TURN_DELAY_MS = 600           # AI-vs-AI: pause between turns at 1x speed
+AI_SPEEDS = (0.5, 1, 2, 4)       # AI-vs-AI speed multipliers
+
 # --- A* (Phase 3) ---
 ASTAR_HAZARD_COST = 3     # Eleven's A* treats hazard cells as costlier (>=1 keeps Manhattan admissible)
 
@@ -66,6 +76,7 @@ UTILITY_LOSS = -50               # terminal: Eleven dies or the turn limit is re
 ELEVEN_REWARDS = {               # Eleven's MCTS (Phase 6)
     "ESCAPE": 50, "DEFEAT_MIND_FLAYER": 25, "RESCUE_FRIEND": 10, "DEFEAT_DEMOGORGON": 2,
     "GAIN_POWER": 1, "LOSE_HP": -5, "VECNA_DANGER": -8, "DEATH": -50,
+    "PROGRESS": 0.5,             # Phase 6 shaping: per cell gained toward the nearest objective (see ai/sim.py)
 }
 MIND_FLAYER_REWARDS = {          # Mind Flayer's MCTS (Phase 7)
     "KILL_ELEVEN": 50, "DAMAGE_ELEVEN": 10, "BLOCK_ROUTE": 5, "TRAP_ELEVEN": 4,
