@@ -17,6 +17,7 @@ def test_damage_floors_at_zero():
 
 def test_power_is_capped_and_spend_checked():
     s = fresh()
+    s.eleven_power = 0
     assert eleven.gain_power(s, 99) == config.MAX_POWER and s.eleven_power == config.MAX_POWER
     assert eleven.gain_power(s, 5) == 0
     s.eleven_power = 0

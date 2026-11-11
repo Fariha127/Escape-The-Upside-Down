@@ -418,7 +418,7 @@ def test_win_when_all_conditions_met():
 def test_rescue_gives_power_bonus():
     s, tm = fresh()
     s.eleven_pos = (1, 7)          # Dustin is at (2, 7)
-    assert s.eleven_power == 0
+    s.eleven_power = 0
     tm.step(Action.RESCUE)
     assert s.eleven_power == config.RESCUE_POWER_BONUS
 
@@ -433,8 +433,9 @@ def test_rescue_bonus_is_capped():
 
 def test_failed_rescue_gives_no_bonus():
     s, tm = fresh()
+    before = s.eleven_power
     assert not tm.step(Action.RESCUE)
-    assert s.eleven_power == 0
+    assert s.eleven_power == before
 
 
 def test_rescuing_everyone_makes_the_final_attack_reachable_without_kills():

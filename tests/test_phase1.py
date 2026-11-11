@@ -10,7 +10,7 @@ def test_default_map_valid_and_sized():
     b = Board.default()
     b.validate()
     assert (b.width, b.height) == (config.GRID_SIZE, config.GRID_SIZE)
-    assert len(b.demogorgon_starts) == 6
+    assert len(b.demogorgon_starts) == 3
 
 
 def test_border_is_walled_and_unreachable_detected():

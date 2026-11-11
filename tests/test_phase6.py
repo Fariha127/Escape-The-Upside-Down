@@ -51,12 +51,14 @@ def snap(s):
 # ------------------------------------------------------------------ goals
 def test_goals_at_the_start():
     s = GameState.new_game()
+    s.eleven_power = 0                                           # no power: no HUNT goal yet
     labels = [g.label for g in applicable_goals(s)]
     assert labels == ["RESCUE Mike", "RESCUE Dustin", "RESCUE Lucas", "RESCUE Will", "EVADE"]
 
 
 def test_hunt_needs_power_and_a_normal_demogorgon():
     s = GameState.new_game()
+    s.eleven_power = 0
     assert Goal(Kind.HUNT) not in applicable_goals(s)
     s.eleven_power = 1
     assert Goal(Kind.HUNT) in applicable_goals(s)

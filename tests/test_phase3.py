@@ -148,7 +148,7 @@ def test_find_path_does_not_mutate_state():
 # ---------------- Demogorgon behaviour ----------------
 def single_demogorgon_state():
     s = GameState.new_game()
-    s.demogorgons = [s.demogorgons[0]]            # one Demogorgon at (9,1)
+    s.demogorgons = [s.demogorgons[0]]            # keep only the first Demogorgon on the map
     return s
 
 
@@ -195,8 +195,9 @@ def test_cached_path_gets_replanned_when_blocked():
 
 
 def test_demogorgon_waits_when_no_path_exists():
-    s = single_demogorgon_state(); d = s.demogorgons[0]       # at (9,1)
-    s.corrupted[(8, 1)] = 5; s.corrupted[(10, 1)] = 5          # walled in by corruption
+    s = single_demogorgon_state(); d = s.demogorgons[0]
+    for n in s.board.neighbors4(d.pos):                        # walled in by corruption
+        s.corrupted[n] = 5
     ai = DemogorgonAI(Metrics())
     assert ai.choose_action(s, d) == Action.WAIT
     assert ai.metrics.astar["demogorgon"].last.found is False

@@ -5,7 +5,7 @@ GRID_SIZE = 15
 
 # --- Eleven ---
 MAX_HP = 5
-START_POWER = 0
+START_POWER = 1
 MAX_POWER = 15
 
 # --- Combat (used from Phase 4) ---
