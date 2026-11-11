@@ -6,7 +6,8 @@ DESIGN DECISIONS (documented for the README)
     search: every Demogorgon and Vecna hits Eleven when adjacent, otherwise steps to the free
     neighbour that is closest to her by static walking distance. The real game still uses A* for
     Demogorgons and Minimax for Vecna; only the search's model of them is simplified.
-  * The Mind Flayer is not modelled here (it arrives in Phase 7).
+  * The Mind Flayer's future actions are not modelled here (its own search is ai/mind_flayer_ai.py);
+    corruption and creatures that already exist are simply part of the state.
   * Rewards come from config.ELEVEN_REWARDS: events (rescue, kill, power, HP loss, death, escape,
     Mind Flayer defeat), a per-turn VECNA_DANGER penalty when Vecna is close, and a small PROGRESS
     term for cells gained toward the nearest objective, so far-away goals still get a gradient
@@ -73,6 +74,7 @@ def upkeep(state: GameState) -> None:
         d.cooldown = max(0, d.cooldown - 1)
         d.frozen_turns = max(0, d.frozen_turns - 1)
     state.vecna.frozen_turns = max(0, state.vecna.frozen_turns - 1)
+    state.mind_flayer.spawn_cooldown = max(0, state.mind_flayer.spawn_cooldown - 1)
 
 
 def sim_turn(state: GameState, action: Action, target=None, bonus: Optional[Action] = None) -> None:
