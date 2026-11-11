@@ -67,6 +67,18 @@ EVADE_RADIUS = 6                 # EVADE looks for a safe cell within this walki
 AI_TURN_DELAY_MS = 600           # AI-vs-AI: pause between turns at 1x speed
 AI_SPEEDS = (0.5, 1, 2, 4)       # AI-vs-AI speed multipliers
 
+# --- Phase 7: Mind Flayer (MCTS: corrupt cells, summon creatures) ---
+MF_CORRUPT_DURATION = 2          # full turns a corrupted cell blocks everyone
+MF_MAX_CORRUPTED = 4             # most corrupted cells at the same time
+MF_SPAWN_COOLDOWN = 4            # turns between two summons
+MF_HORIZON = 6                   # turns the Mind Flayer's MCTS looks ahead (tree + rollout)
+MF_ROUTE_LOOKAHEAD = 6           # corrupt candidates: the first cells of Eleven's expected route
+MF_MAX_CORRUPT_CANDIDATES = 8    # most corrupt actions the search considers at one node
+MF_SPAWN_CANDIDATES = 3          # most summon cells the search considers at one node
+MF_SPAWN_MIN_DISTANCE = 2        # a summoned creature appears this far from Eleven (walking distance) ...
+MF_SPAWN_MAX_DISTANCE = 4        # ... up to this far
+MF_TRAP_FREE_NEIGHBOURS = 1      # Eleven counts as trapped when she can enter at most this many neighbour cells
+
 # --- A* (Phase 3) ---
 ASTAR_HAZARD_COST = 3     # Eleven's A* treats hazard cells as costlier (>=1 keeps Manhattan admissible)
 
@@ -81,5 +93,6 @@ ELEVEN_REWARDS = {               # Eleven's MCTS (Phase 6)
 MIND_FLAYER_REWARDS = {          # Mind Flayer's MCTS (Phase 7)
     "KILL_ELEVEN": 50, "DAMAGE_ELEVEN": 10, "BLOCK_ROUTE": 5, "TRAP_ELEVEN": 4,
     "FORCE_AWAY": 3, "ELEVEN_ESCAPES": -50,
+    "DEFEATED": -25,             # Phase 7 addition: Eleven's final attack beats the Mind Flayer
 }
 MCTS_REWARD_SCALE = 50           # MCTS divides rewards by this so UCB1's constant (1.41) still fits

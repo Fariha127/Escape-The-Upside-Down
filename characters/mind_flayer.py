@@ -19,9 +19,10 @@ class MindFlayer:
     active: bool = False
     defeated: bool = False
     known_eleven_pos: Optional[Pos] = None
+    spawn_cooldown: int = 0         # turns until it may summon again (stored +1, ticked in upkeep)
 
     def clone(self) -> "MindFlayer":
-        return MindFlayer(self.active, self.defeated, self.known_eleven_pos)
+        return MindFlayer(self.active, self.defeated, self.known_eleven_pos, self.spawn_cooldown)
 
 
 def activate(state: "GameState") -> bool:
