@@ -1,7 +1,7 @@
 """Single turn engine shared by Human-vs-AI and AI-vs-AI (only Eleven's controller differs).
 
-The 14-step turn from the spec is laid out as explicit methods. Steps whose features arrive in
-later phases are clearly marked placeholders that do nothing yet (no fake behaviour)."""
+The 14-step turn from the spec is laid out as explicit methods. The Mind Flayer phase asks its MCTS
+controller (ai/mind_flayer_ai.py) for one action per turn once Will is rescued."""
 from __future__ import annotations
 
 from typing import List, Optional
@@ -10,23 +10,27 @@ import config
 from abilities import radar, speed
 from ai.demogorgon_ai import DemogorgonAI
 from ai.metrics import Metrics
+from ai.mind_flayer_ai import MindFlayerAI
 from ai.radar_scan import RadarReading, scan
 from ai.vecna_ai import VecnaAI
 from game.actions import Action, MOVE_DELTAS
 from game.board import Pos
 from game.rules import apply_eleven_action, can_enemy_enter, check_win_loss, demogorgon_hit
 from game.state import GameState, Phase
+from game.mind_flayer_rules import apply_mf_action, is_acting
 from game.vecna_rules import apply_vecna_action
 
 
 class TurnManager:
     def __init__(self, state: GameState, metrics: Optional[Metrics] = None,
                  demogorgon_ai: Optional[DemogorgonAI] = None,
-                 vecna_ai: Optional[VecnaAI] = None):
+                 vecna_ai: Optional[VecnaAI] = None,
+                 mind_flayer_ai: Optional[MindFlayerAI] = None):
         self.state = state
         self.metrics = metrics or Metrics()
         self.demogorgon_ai = demogorgon_ai or DemogorgonAI(self.metrics)
         self.vecna_ai = vecna_ai or VecnaAI(self.metrics)
+        self.mind_flayer_ai = mind_flayer_ai or MindFlayerAI(self.metrics)
         self.radar_readings: List[RadarReading] = []   # current Radar report (empty when Radar is off)
 
     def can_bonus_move(self) -> bool:
@@ -61,7 +65,7 @@ class TurnManager:
             # 6-8. Vecna (Minimax + Alpha-Beta)
             s.phase = Phase.VECNA
             self._vecna_phase()
-            # 9-10. Mind Flayer (MCTS), only if active     -> Phase 7
+            # 9-10. Mind Flayer (MCTS), only if active
             s.phase = Phase.MIND_FLAYER
             self._mind_flayer_phase()
 
@@ -91,8 +95,15 @@ class TurnManager:
             return False
         return apply_eleven_action(trial, bonus_action)
 
-    # ---- placeholders (implemented in later phases) ----
-    def _mind_flayer_phase(self) -> None: pass
+    # ---- steps 9-10: Mind Flayer (MCTS) ----
+    def _mind_flayer_phase(self) -> None:
+        """Once awake (Will rescued) and not yet defeated, the Mind Flayer plans with a real MCTS on
+        clones of the state, then corrupts a cell, summons a creature or waits on the live state."""
+        s = self.state
+        if s.eleven_hp <= 0 or not is_acting(s):
+            return
+        s.mind_flayer.known_eleven_pos = s.eleven_pos
+        apply_mf_action(s, self.mind_flayer_ai.choose_action(s))
 
     # ---- step 3 ----
     def _resolve_eleven_interactions(self) -> None:
@@ -142,3 +153,4 @@ class TurnManager:
             d.cooldown = max(0, d.cooldown - 1)
             d.frozen_turns = max(0, d.frozen_turns - 1)
         s.vecna.frozen_turns = max(0, s.vecna.frozen_turns - 1)
+        s.mind_flayer.spawn_cooldown = max(0, s.mind_flayer.spawn_cooldown - 1)
