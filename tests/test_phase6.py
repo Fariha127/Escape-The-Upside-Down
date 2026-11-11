@@ -16,10 +16,17 @@ from ai.navigation import Navigator
 from ai.sim import enemy_phase, objective_distance, run_goal, sim_turn, snapshot, turn_reward
 from game.actions import Action, MOVE_DELTAS
 from game.rules import apply_eleven_action, legal_eleven_actions
+from game.mind_flayer_rules import WAIT, MFAction
 from game.state import GameState, Winner
 from game.turn_manager import TurnManager
 
 FRIENDS = ("Mike", "Dustin", "Lucas", "Will")
+
+
+class IdleMindFlayer:
+    """A Mind Flayer that only waits, so Phase 6 tests can look at Eleven's AI on its own."""
+    def choose_action(self, state):
+        return MFAction(WAIT)
 
 
 def fresh(kill_demogorgons=True, freeze_vecna=False):
@@ -544,7 +551,7 @@ def test_ai_wins_when_the_dangerous_enemies_are_out_of_the_way(seed):
     """End to end: MCTS + A* rescue all four friends, defeat the Mind Flayer and escape."""
     config.RNG_SEED = seed
     s = fresh(kill_demogorgons=True, freeze_vecna=True)
-    tm = TurnManager(s)
+    tm = TurnManager(s, mind_flayer_ai=IdleMindFlayer())
     ai = ElevenAI(tm.metrics)
     while not s.game_over:
         c = ai.choose_turn(s)
