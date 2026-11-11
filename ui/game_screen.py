@@ -8,7 +8,7 @@ from game.board import Terrain
 from game.state import GameState, Winner
 
 CELL = 40
-HUD_H = 250
+HUD_H = 270
 BG = (8, 10, 22)
 COLORS = {
     Terrain.FLOOR: (22, 26, 44), Terrain.WALL: (4, 4, 10),

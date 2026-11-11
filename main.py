@@ -1,4 +1,4 @@
-"""Escape the Upside Down - entry point (Phase 6: Eleven's MCTS + A*, AI-vs-AI mode). Run: python main.py
+"""Escape the Upside Down - entry point (Phase 7: Mind Flayer MCTS joins the game). Run: python main.py
 
 Human controls: WASD/arrows move | Space wait | E attack adjacent Demogorgon | F rescue a friend in range
 1 Radar | 2 Speed | 3 Teleport (then click a highlighted cell, Esc cancels) | 4 Freeze | X final attack
@@ -50,12 +50,14 @@ def stats_lines(tm):
                    f"{mm.nodes_evaluated} evaluated, {mm.branches_pruned} pruned")
         out.append(f"  last: {last.action.value} score {last.score:.1f}, {last.nodes_evaluated} evaluated, "
                    f"{last.branches_pruned} pruned, {last.time_ms:.2f} ms")
-    mc = tm.metrics.mcts.get("eleven")
-    if mc and mc.calls:
-        last = mc.last
-        out.append(f"Eleven MCTS: {mc.calls} searches, {mc.simulations} simulations, avg {mc.avg_time_ms:.1f} ms")
-        out.append(f"  last: {last.goal.label} ({last.visits}/{last.simulations} visits, value {last.value:+.2f}), "
-                   f"{last.nodes_created} nodes, depth {last.max_depth}")
+    for role, label in (("eleven", "Eleven MCTS"), ("mind_flayer", "Mind Flayer MCTS")):
+        mc = tm.metrics.mcts.get(role)
+        if mc and mc.calls:
+            last = mc.last
+            name = last.goal.label if role == "eleven" else last.label
+            out.append(f"{label}: {mc.calls} searches, {mc.simulations} simulations, avg {mc.avg_time_ms:.1f} ms")
+            out.append(f"  last: {name} ({last.visits}/{last.simulations} visits, value {last.value:+.2f}), "
+                       f"{last.nodes_created} nodes, depth {last.max_depth}")
     return out
 
 
