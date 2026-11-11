@@ -8,7 +8,7 @@ from game.board import Terrain
 from game.state import GameState, Winner
 
 CELL = 40
-HUD_H = 216
+HUD_H = 250
 BG = (8, 10, 22)
 COLORS = {
     Terrain.FLOOR: (22, 26, 44), Terrain.WALL: (4, 4, 10),
@@ -71,7 +71,8 @@ def _status_text(state: GameState) -> str:
 
 def draw(surf: pygame.Surface, state: GameState, font, big_font, small_font=None, overlay=None) -> None:
     """overlay (optional): {'demogorgon_paths': {id: [cells]}, 'eleven_path': [cells], 'stats': [text lines],
-    'teleport_cells': [cells], 'radar': [RadarReading], 'message': str} - every number comes from real runs."""
+    'teleport_cells': [cells], 'radar': [RadarReading], 'message': str,
+    'ai_status': str, 'goal': str, 'goal_target': cell} - every number comes from real runs."""
     overlay = overlay or {}
     sf = small_font or font
     surf.fill(BG)
@@ -88,6 +89,10 @@ def draw(surf: pygame.Surface, state: GameState, font, big_font, small_font=None
     for path in overlay.get("demogorgon_paths", {}).values():
         _draw_path(surf, path, (200, 70, 70), 3)
     _draw_path(surf, overlay.get("eleven_path", []), (80, 220, 255), 5)
+    gt = overlay.get("goal_target")
+    if gt is not None:                        # the cell Eleven's current goal is walking to
+        cx, cy = _centre(gt)
+        pygame.draw.polygon(surf, (80, 220, 255), [(cx, cy - 17), (cx + 17, cy), (cx, cy + 17), (cx - 17, cy)], 2)
     _marker(surf, state.portal_pos, (80, 200, 255) if state.portal_active else (40, 80, 110), "P", font, "square")
     for name, p in state.friend_positions.items():
         if name not in state.rescued:
@@ -113,8 +118,13 @@ def draw(surf: pygame.Surface, state: GameState, font, big_font, small_font=None
     ab = "  ".join(f"{label} x{state.ability_uses.get(key, 0)}" for key, label in ABILITY_ORDER
                    if key in state.unlocked_abilities) or "no abilities yet (rescue friends)"
     surf.blit(sf.render(ab + "   " + _status_text(state), True, GOLD), (10, 54))
+    status = " | ".join(t for t in (overlay.get("ai_status"),
+                                    ("Goal: " + overlay["goal"]) if overlay.get("goal") else "") if t)
+    if status:
+        label = sf.render(status, True, (80, 220, 255))
+        surf.blit(label, (surf.get_width() - label.get_width() - 10, 34))
     for i, keys in enumerate(("WASD move  Space wait  E attack  F rescue  1-4 abilities  X final",
-                              "P paths  N auto-step (A*)  R restart  Esc cancel")):
+                              "T AI-vs-AI  N AI 1 turn  Space pause  +/- speed  P paths  R restart")):
         surf.blit(sf.render(keys, True, (130, 130, 160)), (10, 72 + 14 * i))
     if readings:
         text = "Radar A* steps: " + "  ".join(f"{r.short}={r.steps if r.steps is not None else '-'}" for r in readings)
