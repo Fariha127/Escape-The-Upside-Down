@@ -31,6 +31,7 @@ MCTS_ROLLOUT_DEPTH = 15
 # --- Game flow ---
 MAX_TURNS = 150
 RNG_SEED = 42
+RANDOM_SEED_PER_GAME = True      # UI: every new game gets its own seed (shown on screen); False = always RNG_SEED
 
 # --- Characters (Phase 2) ---
 RESCUE_RANGE = 1                  # Manhattan distance within which Eleven can rescue a friend
@@ -97,3 +98,18 @@ MIND_FLAYER_REWARDS = {          # Mind Flayer's MCTS (Phase 7)
     "DEFEATED": -25,             # Phase 7 addition: Eleven's final attack beats the Mind Flayer
 }
 MCTS_REWARD_SCALE = 50           # MCTS divides rewards by this so UCB1's constant (1.41) still fits
+# --- random board: the walls are fixed, the placements are random (see game/board_gen.py) ---
+RANDOM_BOARD_PER_GAME = True     # UI: every new game gets a board generated from its seed; False = the fixed default map
+DEMOGORGON_COUNT = 2             # normal Demogorgons on a generated board (cap: MAX_NORMAL_DEMOGORGONS); measured on 100 random boards: 2 -> ~47% wins, 3 -> ~33%, 4 -> ~22%, 6 -> ~13%
+BOARD_HAZARD_COUNT = 3           # hazard cells placed on a generated board
+BOARD_PORTAL_MIN_DIST = 20       # portal is at least this many steps from Eleven's start (default map: 25)
+BOARD_FRIEND_MIN_DIST_ELEVEN = 8     # each friend at least this far from Eleven's start (default map: 9)
+BOARD_FRIEND_MIN_DIST_VECNA = 6      # ... and from Vecna's start
+BOARD_FRIEND_SPACING = 6         # friends at least this far from each other (default map: 7)
+BOARD_DEMOGORGON_MIN_DIST_ELEVEN = 6 # Demogorgons start at least this far from Eleven (default map: 6)
+BOARD_DEMOGORGON_SPACING = 4     # Demogorgons at least this far from each other (default map: 5)
+BOARD_DEMOGORGON_MIN_DIST_OBJECT = 3 # ... and from every friend and from the portal
+BOARD_HAZARD_MIN_DIST_ELEVEN = 3     # hazards never start next to Eleven
+BOARD_HAZARD_MAX_DETOUR = 2      # walking around a hazard costs at most this many extra steps between any two objectives
+                                 # (Eleven's A* detours when that is cheaper than ASTAR_HAZARD_COST)
+BOARD_MAX_TRIES = 500            # placement attempts before falling back to the default map

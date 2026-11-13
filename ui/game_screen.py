@@ -224,6 +224,8 @@ def draw_panel(surf: pygame.Surface, state: GameState, tm, fonts: theme.Fonts, o
     draw_text(surf, fonts.tiny, "Space pause  N step  -/+ speed  P paths  R new  M menu",
               (x0 + 12, 104), theme.DIM)
     goal = overlay.get("goal")
+    if overlay.get("seed") is not None:
+        draw_text(surf, fonts.tiny, f"seed {overlay['seed']}", (x0 + PANEL_W - 12, 124), theme.DIM, "topright")
     draw_text(surf, fonts.small, (f"Eleven's goal: {goal}" if goal else
                ("Eleven's goal: -" if overlay.get("ai_mode") else "Eleven's goal: - (human control)")),
               (x0 + 12, 122), theme.CYAN if goal else theme.DIM)
