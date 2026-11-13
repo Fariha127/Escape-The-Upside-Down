@@ -8,6 +8,8 @@ import pygame
 CELL = 36                 # one board cell
 HUD_H = 172               # height of the HUD strip above the board
 PANEL_W = 420             # width of the AI side panel to the right of the board
+LINE_H = 14               # line spacing inside panel cards
+CARD_HEADER_H = 22        # title row of a panel card
 
 # --- colours ---
 BG = (8, 10, 22)
@@ -25,6 +27,12 @@ PURPLE = (150, 70, 200)
 ORANGE = (240, 140, 50)
 HP_COLOR = (210, 60, 70)
 POWER_COLOR = (240, 200, 60)
+
+LOG_COLORS = {            # event log text colour per category (see ui/log_view.py)
+    "damage": (235, 90, 100), "kill": (240, 150, 60), "rescue": (110, 200, 130),
+    "mind_flayer": (190, 120, 240), "ability": (80, 220, 255), "win": (240, 200, 60),
+    "loss": (235, 90, 100), "other": (200, 200, 215),
+}
 
 FRIEND_COLORS = {
     "Mike": (90, 160, 255),

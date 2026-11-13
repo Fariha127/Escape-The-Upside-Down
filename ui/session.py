@@ -72,6 +72,8 @@ class GameSession:
         self.request = None
         self.game_over_at = None
         self.vecna_last: Optional[dict] = None  # Vecna's last real Minimax choice (None if he did not search)
+        self.log_offset = 0                    # event log: lines scrolled back from the newest (0 = following)
+        self._log_len = 0
         self._last_ai_tick = pygame.time.get_ticks()
 
     @property
@@ -89,10 +91,28 @@ class GameSession:
                                "score": mm.last.score}
         elif ok is not False and self.state.turn:   # a turn passed without a Vecna search (frozen / game over)
             self.vecna_last = None
+        self._follow_log()
         if self.state.game_over and self.game_over_at is None:
             self.game_over_at = pygame.time.get_ticks()
             self.picking_teleport, self.pending_first_move = False, None
         return ok is not False
+
+    # ------------------------------------------------------------------ event log scrolling
+    def log_capacity(self) -> int:
+        return game_screen.log_capacity(self.state, game_screen.window_size(self.state)[1])
+
+    def _follow_log(self) -> None:
+        """New events arrive: if the player scrolled back, keep the same lines on screen."""
+        n = len(self.state.event_log)
+        if self.log_offset > 0:
+            self.log_offset += n - self._log_len
+        self._log_len = n
+        self.scroll_log(0)
+
+    def scroll_log(self, lines: int) -> None:
+        """Scroll the event log back (+) or forward (-); 0 only re-clamps. Never changes the game."""
+        most = max(0, len(self.state.event_log) - self.log_capacity())
+        self.log_offset = min(max(0, self.log_offset + lines), most)
 
     def human_step(self, action: Action, target: Optional[Pos] = None,
                    bonus: Optional[Action] = None) -> bool:
@@ -157,6 +177,12 @@ class GameSession:
             self.show_paths = not self.show_paths
         elif key == pygame.K_m:
             self.request = "menu"
+        elif key == pygame.K_PAGEUP:
+            self.scroll_log(max(1, self.log_capacity() - 1))
+        elif key == pygame.K_PAGEDOWN:
+            self.scroll_log(-max(1, self.log_capacity() - 1))
+        elif key == pygame.K_END:
+            self.log_offset = 0
         elif key == pygame.K_ESCAPE:
             self.picking_teleport, self.pending_first_move, self.message = False, None, ""
         elif key == pygame.K_t:
@@ -213,7 +239,7 @@ class GameSession:
         """Everything the renderer needs besides the state. Every value is read from a real run."""
         o: Dict = {"message": self.message, "radar": self.tm.radar_readings,
                    "status": self.status_text(), "show_paths": self.show_paths,
-                   "ai_mode": self.ai_mode, "seed": self.seed}
+                   "ai_mode": self.ai_mode, "seed": self.seed, "log_offset": self.log_offset}
         ai = self.ai
         if ai.run is not None and not self.state.game_over:
             o["goal"] = ai.run.goal.label
