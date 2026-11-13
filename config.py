@@ -44,7 +44,7 @@ HAZARD_DAMAGE = 1                # HP lost each time Eleven ENTERS a hazard cell
 RADAR_DURATION = 3               # turns Dustin's Radar report stays on after it is used
 SPEED_MOVES_PER_TURN = 2         # Eleven's moves per turn while Speed is active
 TELEPORT_SAFE_DISTANCE = 3       # a Teleport cell must be at least this far (Manhattan) from every enemy
-RESCUE_POWER_BONUS = 3           # power Eleven gains each time she rescues a friend (4 friends = 12)
+RESCUE_POWER_BONUS = 4           # power Eleven gains per rescue (balance: was 3; 4 friends = 16, capped at MAX_POWER)
 
 # --- Phase 5: Vecna (Minimax + Alpha-Beta) ---
 VECNA_ATTACK_RANGE = 1           # Vecna hits Eleven when within this Manhattan distance (no cooldown in the spec)
@@ -59,7 +59,8 @@ VECNA_EVAL_WEIGHTS = {           # Vecna's evaluation of a NON-terminal state (a
 
 # --- Phase 6: Eleven (MCTS picks a strategic goal, A* walks to it) ---
 MCTS_GOAL_TURNS = 6              # most turns one goal may run inside a simulation (= one tree edge)
-ELEVEN_REPLAN_TURNS = 4          # real game: a goal is kept at most this many turns before MCTS re-plans
+ELEVEN_RESCUE_WILL_LAST = True   # Will wakes the Mind Flayer, so Eleven only offers 'rescue Will' once the other friends are saved
+ELEVEN_REPLAN_TURNS = 2          # real game: a goal is kept at most this many turns before MCTS re-plans (balance: was 4)
 ELEVEN_DANGER_DISTANCE = 2       # an enemy this close (walking distance) is "danger": VECNA_DANGER reward, re-plan trigger
 DANGER_STEP_COST = 5             # extra path cost of a cell where an enemy could hit Eleven this turn
 EVADE_OPEN_WEIGHT = 3            # EVADE prefers open areas over dead ends: up to this many cells of 'safety' bonus
