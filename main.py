@@ -8,7 +8,8 @@ Speed: after the first move the game asks for a second move (Space = skip it).
 
 AI controls: T switch AI-vs-AI on/off | N the AI plays ONE turn (also works in human mode)
 In AI-vs-AI mode: Space pause/resume | + / - speed (0.5x 1x 2x 4x) | on-screen buttons do the same
-Always: P show paths (A*, Eleven's goal, Vecna's last choice) | R restart | M menu | Esc cancel"""
+Always: P show paths (A*, Eleven's goal, Vecna's last choice) | R restart | M menu | Esc cancel
+Event log: mouse wheel over the panel, PageUp / PageDown scroll it, End jumps to the newest"""
 import pygame
 
 import config
@@ -71,6 +72,10 @@ class App:
     def handle(self, e: pygame.event.Event) -> None:
         if e.type == pygame.QUIT:
             self.running = False
+        elif e.type == pygame.MOUSEWHEEL and self.mode == "game":
+            s = self.session                   # the wheel scrolls the event log when the mouse is over the panel
+            if pygame.mouse.get_pos()[0] >= game_screen.board_width(s.state):
+                s.scroll_log(e.y * 3)
         elif self.mode == "game":
             s = self.session
             if e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:

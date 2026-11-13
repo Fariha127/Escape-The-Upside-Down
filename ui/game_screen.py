@@ -14,8 +14,9 @@ from game.board import Terrain
 from game.state import GameState, Winner
 from ui import theme
 from ui.icons import draw_ability_icon, draw_portrait
+from ui.log_view import visible_entries
 from ui.stats_view import stats_sections
-from ui.theme import CELL, HUD_H, PANEL_W
+from ui.theme import CARD_HEADER_H, CELL, HUD_H, LINE_H, PANEL_W
 from ui.widgets import Button, draw_bar, draw_text
 
 COLORS = {
@@ -79,6 +80,29 @@ def control_buttons(state: GameState, ai_mode: bool, paused: bool) -> List[Butto
         b(2, 1, "Restart", "restart"),
         b(3, 1, "Menu", "menu"),
     ]
+
+
+PANEL_TOP = 146                  # where the stat cards start (below the buttons and the goal line)
+CARD_GAP = 6
+CARD_MAX_LINES = (6, 5, 4, 4)    # most lines each card can show: A*, Vecna, Eleven MCTS, Mind Flayer MCTS
+
+
+def panel_layout(state: GameState, window_h: int):
+    """Rectangles of the four stat cards and of the event log card. Card heights are fixed (from the most
+    lines each can show) so nothing jumps when the numbers change; the log takes the space that is left."""
+    x, w = board_width(state) + 10, PANEL_W - 20
+    y, cards = PANEL_TOP, []
+    for n in CARD_MAX_LINES:
+        h = CARD_HEADER_H + LINE_H * n + 4
+        cards.append(pygame.Rect(x, y, w, h))
+        y += h + CARD_GAP
+    return cards, pygame.Rect(x, y, w, window_h - 8 - y)
+
+
+def log_capacity(state: GameState, window_h: int) -> int:
+    """How many event log lines fit in the log card."""
+    rect = panel_layout(state, window_h)[1]
+    return max(1, (rect.height - CARD_HEADER_H - 4) // LINE_H)
 
 
 # ---------------------------------------------------------------- board pieces
@@ -230,23 +254,48 @@ def draw_panel(surf: pygame.Surface, state: GameState, tm, fonts: theme.Fonts, o
                ("Eleven's goal: -" if overlay.get("ai_mode") else "Eleven's goal: - (human control)")),
               (x0 + 12, 122), theme.CYAN if goal else theme.DIM)
 
-    y = 146
     inner = PANEL_W - 28
-    sections = stats_sections(tm)
-    card_h = (surf.get_height() - y - 8 - 6 * (len(sections) - 1)) // len(sections)
-    for sec in sections:
-        rect = pygame.Rect(x0 + 10, y, PANEL_W - 20, card_h)
+    cards, log_rect = panel_layout(state, surf.get_height())
+    for rect, sec in zip(cards, stats_sections(tm)):
         pygame.draw.rect(surf, theme.CARD_BG, rect, border_radius=6)
         pygame.draw.rect(surf, theme.CARD_EDGE, rect, 1, border_radius=6)
-        draw_text(surf, fonts.small, sec.title, (rect.x + 8, rect.y + 5), theme.GOLD if sec.has_data else theme.DIM)
-        ly = rect.y + 24
+        draw_text(surf, fonts.small, sec.title, (rect.x + 8, rect.y + 4), theme.GOLD if sec.has_data else theme.DIM)
+        ly = rect.y + CARD_HEADER_H
         for text in sec.lines:
-            if ly + 14 > rect.bottom:
+            if ly + LINE_H > rect.bottom:
                 break
             draw_text(surf, fonts.tiny, _fit(fonts.tiny, text, inner), (rect.x + 8, ly),
                       theme.GREEN if sec.has_data else theme.DIM)
-            ly += 15
-        y += card_h + 6
+            ly += LINE_H
+    draw_log(surf, state, fonts, log_rect, overlay.get("log_offset", 0))
+
+
+def draw_log(surf: pygame.Surface, state: GameState, fonts: theme.Fonts, rect: pygame.Rect, offset: int = 0) -> None:
+    """Event log card: the newest events of state.event_log at the bottom, colour-coded by kind. Scrolling back
+    (mouse wheel, PageUp/PageDown, End = newest) only changes which lines are shown."""
+    pygame.draw.rect(surf, theme.CARD_BG, rect, border_radius=6)
+    pygame.draw.rect(surf, theme.CARD_EDGE, rect, 1, border_radius=6)
+    capacity = max(1, (rect.height - CARD_HEADER_H - 4) // LINE_H)
+    entries, older, newer = visible_entries(state.event_log, capacity, offset)
+    draw_text(surf, fonts.small, "Event log", (rect.x + 8, rect.y + 4), theme.GOLD)
+    if newer:
+        hint = f"{newer} newer below - End"
+    elif older:
+        hint = f"{older} older - scroll up"
+    else:
+        hint = "wheel / PgUp PgDn scroll" if len(state.event_log) > capacity else ""
+    draw_text(surf, fonts.tiny, hint, (rect.right - 8, rect.y + 7), theme.DIM, "topright")
+    if not entries:
+        draw_text(surf, fonts.tiny, "no events yet", (rect.x + 8, rect.y + CARD_HEADER_H), theme.DIM)
+        return
+    ly, prefix_w = rect.y + CARD_HEADER_H, 34
+    for e in entries:
+        if e.turn is not None:
+            draw_text(surf, fonts.tiny, f"T{e.turn}", (rect.x + 8, ly), theme.DIM)
+        color = theme.LOG_COLORS.get(e.category, theme.LOG_COLORS["other"])
+        draw_text(surf, fonts.tiny, _fit(fonts.tiny, e.text, rect.width - 16 - prefix_w),
+                  (rect.x + 8 + prefix_w, ly), color)
+        ly += LINE_H
 
 
 # ---------------------------------------------------------------- whole frame
