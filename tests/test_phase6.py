@@ -241,6 +241,7 @@ def test_astar_with_danger_cost_avoids_the_hit_zone_when_it_can():
 
 def test_table_step_reaches_every_target_in_exactly_the_static_distance():
     s = fresh(freeze_vecna=True)
+    s.mind_flayer.defeated = True                  # the portal is only enterable once it is open
     rng = random.Random(9)
     cells = [(x, y) for y in range(15) for x in range(15)
              if s.board.is_walkable((x, y)) and (x, y) != s.vecna.pos]

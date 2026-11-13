@@ -22,9 +22,15 @@ def move_target(state: GameState, action: Action) -> Pos:
     return (state.eleven_pos[0] + dx, state.eleven_pos[1] + dy)
 
 
+def portal_closed_to_eleven(state: GameState, p: Pos) -> bool:
+    """The portal cell cannot be entered by Eleven until the Mind Flayer is defeated."""
+    return p == state.portal_pos and not state.mind_flayer.defeated
+
+
 def can_eleven_enter(state: GameState, p: Pos) -> bool:
-    """Walls, map edges, corrupted cells and cells occupied by enemies are not enterable."""
-    return not state.is_blocked(p) and p not in state.enemy_positions()
+    """Walls, map edges, corrupted cells, enemies and the still-closed portal are not enterable."""
+    return (not state.is_blocked(p) and p not in state.enemy_positions()
+            and not portal_closed_to_eleven(state, p))
 
 
 def can_enemy_enter(state: GameState, p: Pos) -> bool:
