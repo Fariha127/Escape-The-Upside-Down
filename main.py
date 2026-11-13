@@ -58,7 +58,7 @@ class App:
             self.mode, self.screen = "info", SettingsScreen(self.size, self.settings)
         elif target == "results":
             self.mode = "results"
-            self.screen = ResultsScreen(self.size, build_results(self.session.state, self.session.tm))
+            self.screen = ResultsScreen(self.size, build_results(self.session.state, self.session.tm, self.session.seed))
         elif target == "again":
             ai = self.session.ai_mode
             self.go("ai" if ai else "human")

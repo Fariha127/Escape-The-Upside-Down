@@ -123,7 +123,7 @@ def demogorgons_defeated(state: GameState) -> int:
     return sum(1 for d in state.demogorgons if not d.alive and not d.temporary)
 
 
-def build_results(state: GameState, tm) -> Results:
+def build_results(state: GameState, tm, seed=None) -> Results:
     """Summary of the finished (or current) game, taken only from the state and the Metrics."""
     if state.winner == Winner.ELEVEN:
         headline, won = "ELEVEN ESCAPED!", True
@@ -144,6 +144,8 @@ def build_results(state: GameState, tm) -> Results:
         ("Final HP", str(state.eleven_hp)),
         ("Final power", str(state.eleven_power)),
     ]
+    if seed is not None:
+        rows.append(("Game seed", str(seed)))
     m = tm.metrics
     ai_rows: List[Tuple[str, str]] = []
     for role, label in (("eleven", "Eleven MCTS"), ("mind_flayer", "Mind Flayer MCTS")):

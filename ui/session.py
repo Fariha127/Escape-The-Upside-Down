@@ -3,6 +3,7 @@
 The GameSession never draws. It owns the GameState / TurnManager / ElevenAI and only changes the game
 through TurnManager.step, exactly like the old main loop did. Human and AI turns use the same engine."""
 from __future__ import annotations
+import random
 from typing import Dict, List, Optional, Tuple
 
 import pygame
@@ -13,14 +14,26 @@ from ai.eleven_ai import ElevenAI
 from game import rules
 from game.actions import Action, MOVE_DELTAS
 from game.board import Pos
+from game.board_gen import generate_board
 from game.state import GameState
 from game.turn_manager import TurnManager
 from ui import game_screen
 
 
-def new_game() -> Tuple[GameState, TurnManager, ElevenAI]:
-    """A fresh game. The AI shares the turn manager's Metrics so its searches are recorded."""
-    state = GameState.new_game()
+FIXED_SEED = config.RNG_SEED          # the seed used when RANDOM_SEED_PER_GAME is off
+SEED_RANGE = 1_000_000
+
+
+def pick_seed() -> int:
+    """Seed for a new game: a fresh one, or the fixed one when the setting is off. The AIs read
+    config.RNG_SEED at search time, so setting it here makes the whole game reproducible from the number."""
+    return random.randrange(SEED_RANGE) if config.RANDOM_SEED_PER_GAME else FIXED_SEED
+
+
+def new_game(board=None) -> Tuple[GameState, TurnManager, ElevenAI]:
+    """A fresh game (default map unless a board is given). The AI shares the turn manager's Metrics
+    so its searches are recorded."""
+    state = GameState.new_game(board)
     tm = TurnManager(state)
     return state, tm, ElevenAI(tm.metrics)
 
@@ -49,7 +62,10 @@ class GameSession:
 
     # ------------------------------------------------------------------ lifecycle
     def restart(self) -> None:
-        self.state, self.tm, self.ai = new_game()
+        self.seed = pick_seed()
+        config.RNG_SEED = self.seed
+        board = generate_board(self.seed) if config.RANDOM_BOARD_PER_GAME else None   # same seed -> same board
+        self.state, self.tm, self.ai = new_game(board)
         self.picking_teleport = False          # waiting for the human to click a destination
         self.pending_first_move: Optional[Action] = None   # Speed: first move chosen, waiting for the second
         self.message = ""
@@ -197,7 +213,7 @@ class GameSession:
         """Everything the renderer needs besides the state. Every value is read from a real run."""
         o: Dict = {"message": self.message, "radar": self.tm.radar_readings,
                    "status": self.status_text(), "show_paths": self.show_paths,
-                   "ai_mode": self.ai_mode}
+                   "ai_mode": self.ai_mode, "seed": self.seed}
         ai = self.ai
         if ai.run is not None and not self.state.game_over:
             o["goal"] = ai.run.goal.label
