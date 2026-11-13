@@ -122,6 +122,8 @@ def _try_place(rng: random.Random, count: int) -> Optional[Dict[str, object]]:
             return None
         hazards.append(p)
         used.add(p)
+    if not _detour_ok(portal, [eleven, vecna] + list(friends.values())):   # the closed portal must not block a route
+        return None
     return {"portal": portal, "friends": friends, "demogorgons": demogorgons, "hazards": hazards}
 
 

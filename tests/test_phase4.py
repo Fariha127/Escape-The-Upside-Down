@@ -401,8 +401,8 @@ def test_win_needs_all_conditions():
     s, tm = fresh()
     s.eleven_pos = (11, 13)
     s.visited.add((11, 13))
-    tm.step(Action.MOVE_RIGHT)                     # reaches the portal with nothing else done
-    assert s.eleven_pos == s.portal_pos and s.winner == Winner.NONE
+    tm.step(Action.MOVE_RIGHT)                     # the portal is closed until the Mind Flayer is defeated
+    assert s.eleven_pos != s.portal_pos and s.winner == Winner.NONE
 
 
 def test_win_when_all_conditions_met():
