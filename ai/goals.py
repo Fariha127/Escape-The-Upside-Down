@@ -71,6 +71,11 @@ def applicable_goals(state) -> List[Goal]:
         return []
     goals = [Goal(Kind.RESCUE, f) for f in friend_rules.FRIEND_NAMES
              if f in state.friend_positions and f not in state.rescued]
+    if config.ELEVEN_RESCUE_WILL_LAST:
+        # Rescuing Will wakes the Mind Flayer, so MCTS is only offered "rescue Will" once every other
+        # friend is saved (MCTS still chooses freely among the remaining goals).
+        others_left = any(g.arg != "Will" for g in goals)
+        goals = [g for g in goals if not (g.arg == "Will" and others_left)]
     if state.eleven_power >= config.DEMOGORGON_ATTACK_COST and normal_demogorgons(state):
         goals.append(Goal(Kind.HUNT))
     goals.append(Goal(Kind.EVADE))

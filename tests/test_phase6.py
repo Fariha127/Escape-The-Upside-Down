@@ -56,7 +56,8 @@ def snap(s):
 
 
 # ------------------------------------------------------------------ goals
-def test_goals_at_the_start():
+def test_goals_at_the_start(monkeypatch):
+    monkeypatch.setattr(config, "ELEVEN_RESCUE_WILL_LAST", False)    # this test covers the plain goal list
     s = GameState.new_game()
     s.eleven_power = 0                                           # no power: no HUNT goal yet
     labels = [g.label for g in applicable_goals(s)]
@@ -411,7 +412,8 @@ def test_mcts_never_mutates_the_live_state():
     assert snap(s) == before
 
 
-def test_mcts_rescues_an_adjacent_friend_when_nothing_threatens():
+def test_mcts_rescues_an_adjacent_friend_when_nothing_threatens(monkeypatch):
+    monkeypatch.setattr(config, "ELEVEN_RESCUE_WILL_LAST", False)    # Mike vs Lucas is a near-tie otherwise
     s = fresh(freeze_vecna=True)
     s.eleven_pos = (13, 2)
     assert mcts_search(s, 150, seed=1).goal == Goal(Kind.RESCUE, "Mike")
