@@ -125,7 +125,8 @@ def howto_blocks():
                     "Mike Teleport (3, then click a highlighted cell), Will Freeze (4). Rescuing Will wakes the "
                     "Mind Flayer."),
         ("Final attack", f"X needs the Mind Flayer awake and at least {config.FINAL_POWER_REQUIREMENT} power. It "
-                         "defeats the Mind Flayer and opens the portal."),
+                         "defeats the Mind Flayer and opens the portal. Until then the portal cell is closed and "
+                         "Eleven cannot step on it."),
         ("AI controls", "T switches AI vs AI on/off, N lets the AI play one turn, Space pauses, + and - change "
                         "speed, P shows A* paths and Vecna's last Minimax choice, R restarts, M returns to the menu."),
     ]
@@ -160,6 +161,7 @@ class SettingsScreen(Screen):
             Button(pygame.Rect(w // 2 - 190, 170, 380, 44), "", "speed"),
             Button(pygame.Rect(w // 2 - 190, 230, 380, 44), "", "ab"),
             Button(pygame.Rect(w // 2 - 190, 290, 380, 44), "", "seed"),
+            Button(pygame.Rect(w // 2 - 190, 350, 380, 44), "", "sound"),
             Button(pygame.Rect(w // 2 - 80, h - 56, 160, 36), "Back", "menu", hint="Esc"),
         ]
         self._refresh()
@@ -169,7 +171,7 @@ class SettingsScreen(Screen):
         self.buttons[1].label = "Vecna Alpha-Beta: " + ("ON" if config.VECNA_USE_ALPHA_BETA else "OFF (plain Minimax)")
         self.buttons[2].label = ("Game seed: new each game" if config.RANDOM_SEED_PER_GAME
                                  else f"Game seed: fixed ({config.RNG_SEED})")
-
+        self.buttons[3].label = "Sound effects: " + ("ON" if config.SOUND_ENABLED else "OFF")
     def _click(self, id_: str) -> Optional[str]:
         if id_ == "speed":
             self.settings.speed_idx = (self.settings.speed_idx + 1) % len(config.AI_SPEEDS)
@@ -177,6 +179,8 @@ class SettingsScreen(Screen):
             config.VECNA_USE_ALPHA_BETA = not config.VECNA_USE_ALPHA_BETA
         elif id_ == "seed":
             config.RANDOM_SEED_PER_GAME = not config.RANDOM_SEED_PER_GAME
+        elif id_ == "sound":
+            config.SOUND_ENABLED = not config.SOUND_ENABLED
         elif id_ == "menu":
             return "menu"
         self._refresh()
@@ -195,6 +199,8 @@ class SettingsScreen(Screen):
                 return self._click("ab")
             if e.key == pygame.K_3:
                 return self._click("seed")
+            if e.key == pygame.K_4:
+                return self._click("sound")
         return None
 
     def draw(self, surf, fonts, mouse_pos=None):
@@ -202,5 +208,5 @@ class SettingsScreen(Screen):
         for b in self.buttons:
             b.draw(surf, fonts.body, mouse_pos)
         w = surf.get_width()
-        draw_text(surf, fonts.tiny, "Click a row to change it (keys 1-3). All are values from config.py.",
+        draw_text(surf, fonts.tiny, "Click a row to change it (keys 1-4). All are values from config.py.",
                   (w // 2, 360), theme.DIM, "center")
