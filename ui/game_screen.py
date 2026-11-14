@@ -60,6 +60,16 @@ def cell_at(state: GameState, mouse_pos):
 
 def _centre(pos):
     return pos[0] * CELL + CELL // 2, pos[1] * CELL + CELL // 2 + HUD_H
+def _flash(surf, kind, cell, strength):
+    """Red square on Eleven when she is hit; a gold ring where a Demogorgon died."""
+    cx, cy = _centre(cell)
+    if kind == "hit":
+        s = pygame.Surface((CELL, CELL), pygame.SRCALPHA)
+        s.fill((255, 40, 40, int(170 * strength)))
+        surf.blit(s, (cx - CELL // 2, cy - CELL // 2))
+    else:
+        radius = int(CELL // 2 + (1 - strength) * CELL)
+        pygame.draw.circle(surf, theme.GOLD, (cx, cy), radius, max(1, int(4 * strength)))
 
 
 def control_buttons(state: GameState, ai_mode: bool, paused: bool) -> List[Button]:
@@ -153,16 +163,22 @@ def draw_board(surf: pygame.Surface, state: GameState, fonts: theme.Fonts, overl
         r = CELL // 2 - 3
         pygame.draw.polygon(surf, theme.CYAN, [(cx, cy - r), (cx + r, cy), (cx, cy + r), (cx - r, cy)], 2)
     f = fonts.body
+    anim, now = overlay.get("anim"), overlay.get("now", 0)
+
+    def at(key, cell):                          # where a moving piece is drawn right now
+        return anim.cell_pos(key, cell, now) if anim else cell
     _marker(surf, state.portal_pos, theme.CYAN if state.portal_active else (40, 80, 110), "P", f, "square")
     for name, p in state.friend_positions.items():
         if name not in state.rescued:
             _marker(surf, p, theme.FRIEND_COLORS.get(name, theme.GOLD), name[0], f)
     for d in state.living_demogorgons():
         # purple = temporary Mind Flayer creature (gives no power)
-        _marker(surf, d.pos, theme.PURPLE if d.temporary else (170, 60, 60), "G", f, "square")
-    _marker(surf, state.vecna.pos, (140, 0, 20), "V", f, "square")
-    _marker(surf, state.eleven_pos, (240, 240, 240), "E", f)
-
+        _marker(surf, at(f"D{d.id}", d.pos), theme.PURPLE if d.temporary else (170, 60, 60), "G", f, "square")
+        _marker(surf, at("V", state.vecna.pos), (140, 0, 20), "V", f, "square")
+    _marker(surf, at("E", state.eleven_pos), (240, 240, 240), "E", f)
+    if anim:
+        for kind, cell, start in anim.flashes:
+            _flash(surf, kind, cell, anim.flash_strength(start, now))
     vc = overlay.get("vecna_choice")            # Vecna's last real Minimax choice
     if vc:
         if vc["action"] == Action.ATTACK:

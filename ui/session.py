@@ -17,7 +17,7 @@ from game.board import Pos
 from game.board_gen import generate_board
 from game.state import GameState
 from game.turn_manager import TurnManager
-from ui import game_screen, sound
+from ui import animation, game_screen, sound
 
 
 FIXED_SEED = config.RNG_SEED          # the seed used when RANDOM_SEED_PER_GAME is off
@@ -59,6 +59,7 @@ class GameSession:
         self.game_over_at: Optional[int] = None
         self._last_ai_tick = 0
         self.sound = sound.SoundPlayer()
+        self.animator = animation.Animator()
         self.restart()
 
     # ------------------------------------------------------------------ lifecycle
@@ -246,6 +247,9 @@ class GameSession:
         o: Dict = {"message": self.message, "radar": self.tm.radar_readings,
                    "status": self.status_text(), "show_paths": self.show_paths,
                    "ai_mode": self.ai_mode, "seed": self.seed, "log_offset": self.log_offset}
+        now = pygame.time.get_ticks()
+        self.animator.update(self.state, now, animation.slide_duration_ms(self.ai_mode, self.speed))
+        o["anim"], o["now"] = self.animator, now
         ai = self.ai
         if ai.run is not None and not self.state.game_over:
             o["goal"] = ai.run.goal.label
