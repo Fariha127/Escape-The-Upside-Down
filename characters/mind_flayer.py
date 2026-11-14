@@ -1,4 +1,4 @@
-"""Mind Flayer: inactive until Will is rescued; then a map-control enemy (MCTS in Phase 7).
+"""Mind Flayer: inactive until Will is rescued; then a map-control enemy 
 
 DESIGN DECISION: the Mind Flayer has no board position. It is an omnipresent entity that acts
 on the map (corrupt cells, spawn creatures), so the final psychic attack needs no adjacency,

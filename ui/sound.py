@@ -33,12 +33,14 @@ class Snapshot:
     mind_flayer_defeated: bool
     game_over: bool
     eleven_won: bool
+    mind_flayer_awake: bool = False
 
 
 def snapshot(state) -> Snapshot:
     return Snapshot(state.eleven_pos, state.eleven_hp, len(state.rescued),
                     sum(1 for d in state.demogorgons if not d.alive),
-                    state.mind_flayer.defeated, state.game_over, state.winner.name == "ELEVEN")
+                    state.mind_flayer.defeated, state.game_over, state.winner.name == "ELEVEN",
+                    state.mind_flayer.active)
 
 
 def events_between(a: Snapshot, b: Snapshot) -> List[str]:
@@ -52,6 +54,8 @@ def events_between(a: Snapshot, b: Snapshot) -> List[str]:
         out.append("rescue")
     if b.hp < a.hp:
         out.append("hit")
+    if b.mind_flayer_awake and not a.mind_flayer_awake:
+        out.append("mind_flayer")
     if b.mind_flayer_defeated and not a.mind_flayer_defeated:
         out.append("portal")
     if b.game_over and not a.game_over:

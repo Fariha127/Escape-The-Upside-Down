@@ -1,4 +1,4 @@
-"""Vecna: strategic enemy. Never permanently killed in normal play. AI (Minimax + Alpha-Beta): Phase 5."""
+"""Vecna: strategic enemy. Never permanently killed in normal play. AI (Minimax + Alpha-Beta)."""
 from __future__ import annotations
 from dataclasses import dataclass
 

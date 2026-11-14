@@ -11,8 +11,8 @@ Pos = Tuple[int, int]
 class Terrain(IntEnum):
     FLOOR = 0
     WALL = 1
-    VINE = 2     # walkable, cosmetic for now
-    HAZARD = 3   # walkable; damage rule added in a later phase
+    VINE = 2     # walkable, 
+    HAZARD = 3   # walkable; 
 
 
 # ASCII legend: # wall . floor v vine h hazard | E Eleven M Mike D Dustin L Lucas

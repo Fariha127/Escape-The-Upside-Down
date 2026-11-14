@@ -8,7 +8,7 @@ MAX_HP = 5
 START_POWER = 1
 MAX_POWER = 15
 
-# --- Combat (used from Phase 4) ---
+# --- Combat ---
 DEMOGORGON_DAMAGE = 1
 VECNA_DAMAGE = 2
 DEMOGORGON_ATTACK_COST = 1
@@ -16,12 +16,12 @@ DEMOGORGON_REWARD = 3
 DEMOGORGON_COOLDOWN = 1          # decision: 1-turn cooldown after a hit (simpler than knockback)
 FINAL_POWER_REQUIREMENT = 10
 
-# --- Abilities (used from Phase 4) ---
+# --- Abilities ---
 ABILITY_USES = {"RADAR": 2, "SPEED": 1, "TELEPORT": 1, "FREEZE": 1}
 ABILITY_DURATIONS = {"SPEED": 3, "FREEZE": 2}
 FRIEND_ABILITY = {"Dustin": "RADAR", "Lucas": "SPEED", "Mike": "TELEPORT", "Will": "FREEZE"}
 
-# --- AI parameters (used from Phase 3+) ---
+# --- AI parameters ---
 MINIMAX_DEPTH = 4
 ELEVEN_MCTS_SIMULATIONS = 300
 MINDFLAYER_MCTS_SIMULATIONS = 150
@@ -33,13 +33,13 @@ MAX_TURNS = 150
 RNG_SEED = 42
 RANDOM_SEED_PER_GAME = True      # UI: every new game gets its own seed (shown on screen); False = always RNG_SEED
 
-# --- Characters (Phase 2) ---
+# --- Characters ---
 RESCUE_RANGE = 1                  # Manhattan distance within which Eleven can rescue a friend
 MAX_NORMAL_DEMOGORGONS = 10       # hard cap for normal (power-giving) Demogorgons
 MAX_TEMP_CREATURES = 3            # cap on simultaneous Mind-Flayer-spawned creatures
 FINAL_ATTACK_CONSUMES_POWER = True
 
-# --- Phase 4: combat, hazards, abilities ---
+# --- combat, hazards, abilities ---
 ATTACK_RANGE = 1                 # Eleven can attack a Demogorgon within this Manhattan distance
 HAZARD_DAMAGE = 1                # HP lost each time Eleven ENTERS a hazard cell
 RADAR_DURATION = 3               # turns Dustin's Radar report stays on after it is used
@@ -47,7 +47,7 @@ SPEED_MOVES_PER_TURN = 2         # Eleven's moves per turn while Speed is active
 TELEPORT_SAFE_DISTANCE = 3       # a Teleport cell must be at least this far (Manhattan) from every enemy
 RESCUE_POWER_BONUS = 4           # power Eleven gains per rescue (balance: was 3; 4 friends = 16, capped at MAX_POWER)
 
-# --- Phase 5: Vecna (Minimax + Alpha-Beta) ---
+# --- Vecna (Minimax + Alpha-Beta) ---
 VECNA_ATTACK_RANGE = 1           # Vecna hits Eleven when within this Manhattan distance (no cooldown in the spec)
 VECNA_USE_ALPHA_BETA = True      # False = plain Minimax (used by the experiments)
 VECNA_EVAL_DISTANCE_CAP = 30     # walking distance at which "closeness" counts as zero (2 * GRID_SIZE)
@@ -58,7 +58,7 @@ VECNA_EVAL_WEIGHTS = {           # Vecna's evaluation of a NON-terminal state (a
     "PORTAL_PROGRESS": 4,        # subtracted up to this much when the portal is open and Eleven is near it
 }
 
-# --- Phase 6: Eleven (MCTS picks a strategic goal, A* walks to it) ---
+# --- Eleven (MCTS picks a strategic goal, A* walks to it) ---
 MCTS_GOAL_TURNS = 6              # most turns one goal may run inside a simulation (= one tree edge)
 ELEVEN_RESCUE_WILL_LAST = True   # Will wakes the Mind Flayer, so Eleven only offers 'rescue Will' once the other friends are saved
 ELEVEN_REPLAN_TURNS = 2          # real game: a goal is kept at most this many turns before MCTS re-plans (balance: was 4)
@@ -78,7 +78,7 @@ SOUND_ENABLED = True             # UI: sound effects on/off (also a Settings row
 SOUND_VOLUME = 0.4               # 0.0 - 1.0
 SOUND_SAMPLE_RATE = 22050        # Hz of the generated tones
 
-# --- Phase 7: Mind Flayer (MCTS: corrupt cells, summon creatures) ---
+# --- Flayer (MCTS: corrupt cells, summon creatures) ---
 MF_CORRUPT_DURATION = 2          # full turns a corrupted cell blocks everyone
 MF_MAX_CORRUPTED = 4             # most corrupted cells at the same time
 MF_SPAWN_COOLDOWN = 4            # turns between two summons
@@ -90,21 +90,21 @@ MF_SPAWN_MIN_DISTANCE = 2        # a summoned creature appears this far from Ele
 MF_SPAWN_MAX_DISTANCE = 4        # ... up to this far
 MF_TRAP_FREE_NEIGHBOURS = 1      # Eleven counts as trapped when she can enter at most this many neighbour cells
 
-# --- A* (Phase 3) ---
+# --- A* ---
 ASTAR_HAZARD_COST = 3     # Eleven's A* treats hazard cells as costlier (>=1 keeps Manhattan admissible)
 
 # --- Utilities and rewards (scaled down: 1-2 digit numbers; only ratios matter) ---
 UTILITY_WIN = 50                 # terminal: Eleven escapes
 UTILITY_LOSS = -50               # terminal: Eleven dies or the turn limit is reached
-ELEVEN_REWARDS = {               # Eleven's MCTS (Phase 6)
+ELEVEN_REWARDS = {               # Eleven's MCTS 
     "ESCAPE": 50, "DEFEAT_MIND_FLAYER": 25, "RESCUE_FRIEND": 10, "DEFEAT_DEMOGORGON": 2,
     "GAIN_POWER": 1, "LOSE_HP": -5, "VECNA_DANGER": -8, "DEATH": -50,
-    "PROGRESS": 0.5,             # Phase 6 shaping: per cell gained toward the nearest objective (see ai/sim.py)
+    "PROGRESS": 0.5,             # shaping: per cell gained toward the nearest objective (see ai/sim.py)
 }
-MIND_FLAYER_REWARDS = {          # Mind Flayer's MCTS (Phase 7)
+MIND_FLAYER_REWARDS = {          # Mind Flayer's MCTS
     "KILL_ELEVEN": 50, "DAMAGE_ELEVEN": 10, "BLOCK_ROUTE": 5, "TRAP_ELEVEN": 4,
     "FORCE_AWAY": 3, "ELEVEN_ESCAPES": -50,
-    "DEFEATED": -25,             # Phase 7 addition: Eleven's final attack beats the Mind Flayer
+    "DEFEATED": -25,             # addition: Eleven's final attack beats the Mind Flayer
 }
 MCTS_REWARD_SCALE = 50           # MCTS divides rewards by this so UCB1's constant (1.41) still fits
 # --- random board: the walls are fixed, the placements are random (see game/board_gen.py) ---

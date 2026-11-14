@@ -1,5 +1,4 @@
-"""Explicit action representation. Low-level actions are Enum members;
-strategic (MCTS) actions are added in Phase 6."""
+
 from enum import Enum
 
 
