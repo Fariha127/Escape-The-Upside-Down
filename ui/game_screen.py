@@ -12,7 +12,7 @@ import config
 from game.actions import Action
 from game.board import Terrain
 from game.state import GameState, Winner
-from ui import sprites, theme
+from ui import portal, sprites, theme
 from ui.icons import draw_ability_icon, draw_portrait
 from ui.log_view import visible_entries
 from ui.stats_view import stats_sections
@@ -176,7 +176,7 @@ def draw_board(surf: pygame.Surface, state: GameState, fonts: theme.Fonts, overl
 
     def at(key, cell):                          # where a moving piece is drawn right now
         return anim.cell_pos(key, cell, now) if anim else cell
-    _piece(surf, "portal", state.portal_pos, theme.CYAN if state.portal_active else (40, 80, 110), "P", f, "square")
+    portal.draw(surf, _centre(state.portal_pos), state.portal_active, now)
     for name, p in state.friend_positions.items():
         if name not in state.rescued:
             _piece(surf, name.lower(), p, theme.FRIEND_COLORS.get(name, theme.GOLD), name[0], f)

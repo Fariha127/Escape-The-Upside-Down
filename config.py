@@ -68,6 +68,7 @@ EVADE_OPEN_WEIGHT = 3            # EVADE prefers open areas over dead ends: up t
 EVADE_RADIUS = 6                 # EVADE looks for a safe cell within this walking distance
 AI_TURN_DELAY_MS = 600           # AI-vs-AI: pause between turns at 1x speed
 AI_SPEEDS = (0.5, 1, 2, 4)       # AI-vs-AI speed multipliers
+PORTAL_TURN_MS = 140            # UI: open portal swirl moves one step every this many ms (needs ANIM_ENABLED)
 SPRITES_ENABLED = True          # UI: show pictures from assets/characters/ (letters for any missing file)
 ANIM_ENABLED = True              # UI: characters slide between cells, hits and kills flash
 ANIM_SLIDE_MS = 140              # length of one slide
