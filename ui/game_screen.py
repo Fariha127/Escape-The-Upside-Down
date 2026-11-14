@@ -80,14 +80,14 @@ def control_buttons(state: GameState, ai_mode: bool, paused: bool) -> List[Butto
         return Button(pygame.Rect(x0 + col * (w + gap), y0 + row * (h + gap), w, h), label, id_, **kw)
     return [
         b(0, 0, "Resume" if paused else "Pause", "pause", enabled=ai_mode and not over,
-          active=ai_mode and paused),
-        b(1, 0, "Step", "step", enabled=not over),
-        b(2, 0, "Slower", "slower", enabled=ai_mode and not over),
-        b(3, 0, "Faster", "faster", enabled=ai_mode and not over),
-        b(0, 1, "AI plays", "toggle_ai", active=ai_mode),
-        b(1, 1, "Paths", "paths"),
-        b(2, 1, "Restart", "restart"),
-        b(3, 1, "Menu", "menu"),
+          active=ai_mode and paused, icon="play" if paused else "pause"),
+        b(1, 0, "Step", "step", enabled=not over, icon="step"),
+        b(2, 0, "Slower", "slower", enabled=ai_mode and not over, icon="slower"),
+        b(3, 0, "Faster", "faster", enabled=ai_mode and not over, icon="faster"),
+        b(0, 1, "AI play", "toggle_ai", active=ai_mode, icon="ai"),
+        b(1, 1, "Paths", "paths", icon="paths"),
+        b(2, 1, "Restart", "restart", icon="restart"),
+        b(3, 1, "Menu", "menu", icon="menu"),
     ]
 
 

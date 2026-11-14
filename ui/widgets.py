@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple
 
 import pygame
 
-from ui import theme
+from ui import emoji, theme
 
 
 def draw_text(surf: pygame.Surface, font: pygame.font.Font, text: str, pos: Tuple[int, int],
@@ -42,7 +42,7 @@ def draw_bar(surf: pygame.Surface, rect: pygame.Rect, value: float, maximum: flo
         pygame.draw.rect(surf, color, (rect.x, rect.y, w, rect.height), border_radius=4)
     pygame.draw.rect(surf, edge, rect, 1, border_radius=4)
 
-
+ICON_PAD = 4                  # space around a button's icon
 @dataclass
 class Button:
     """A clickable rectangle. `id` is what the owning screen reacts to."""
@@ -52,6 +52,7 @@ class Button:
     enabled: bool = True
     active: bool = False          # drawn highlighted (e.g. a toggle that is ON)
     hint: str = ""                # small key hint shown under/next to the label
+    icon: str = ""                # name of a colourful icon from ui/emoji.py, drawn left of the label
 
     def hit(self, pos) -> bool:
         return self.enabled and self.rect.collidepoint(pos)
@@ -70,8 +71,13 @@ class Button:
         pygame.draw.rect(surf, fill, self.rect, border_radius=6)
         pygame.draw.rect(surf, edge, self.rect, 2 if (hover or focused) else 1, border_radius=6)
         label = f"{self.label} [{self.hint}]" if self.hint else self.label
-        draw_text(surf, font, label, self.rect.center, text, "center")
-
+        if self.icon:
+            size = self.rect.height - 2 * ICON_PAD
+            emoji.draw(surf, self.icon, (self.rect.x + ICON_PAD + size // 2, self.rect.centery), size, self.enabled)
+            draw_text(surf, font, label, (self.rect.x + ICON_PAD + size + (self.rect.width - ICON_PAD - size) // 2,
+                                          self.rect.centery), text, "center")
+        else:
+            draw_text(surf, font, label, self.rect.center, text, "center")
 
 def button_at(buttons: List[Button], pos) -> Optional[Button]:
     """The enabled button under `pos`, if any."""
