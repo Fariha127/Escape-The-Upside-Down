@@ -1,6 +1,6 @@
 """Eleven's physical navigation (the 'HOW' half of MCTS + A*).
 
-Phase 6: MCTS chooses a strategic target ('rescue Mike', 'go to portal', ...).
+MCTS chooses a strategic target ('rescue Mike', 'go to portal', ...).
 This class then converts that target into one concrete MOVE_* action using A*."""
 from __future__ import annotations
 from typing import Optional, Tuple

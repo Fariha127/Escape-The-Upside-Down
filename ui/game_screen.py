@@ -114,7 +114,13 @@ def log_capacity(state: GameState, window_h: int) -> int:
     rect = panel_layout(state, window_h)[1]
     return max(1, (rect.height - CARD_HEADER_H - 4) // LINE_H)
 
+LIGHT_LETTER_BELOW = 90      # markers darker than this (brightness 0-255) get a white letter instead of black
 
+
+def _letter_color(bg):
+    """Black letter on light markers, white letter on dark ones (Vecna's dark red)."""
+    brightness = 0.299 * bg[0] + 0.587 * bg[1] + 0.114 * bg[2]
+    return (255, 255, 255) if brightness < LIGHT_LETTER_BELOW else (0, 0, 0)
 # ---------------------------------------------------------------- board pieces
 def _marker(surf, pos, color, letter, font, shape="circle"):
     cx, cy = _centre(pos)
@@ -123,7 +129,7 @@ def _marker(surf, pos, color, letter, font, shape="circle"):
         pygame.draw.circle(surf, color, (cx, cy), half)
     else:
         pygame.draw.rect(surf, color, (cx - half + 1, cy - half + 1, 2 * half - 2, 2 * half - 2), border_radius=4)
-    t = font.render(letter, True, (0, 0, 0))
+    t = font.render(letter, True, _letter_color(color))
     surf.blit(t, t.get_rect(center=(cx, cy)))
 
 
@@ -174,7 +180,7 @@ def draw_board(surf: pygame.Surface, state: GameState, fonts: theme.Fonts, overl
     for d in state.living_demogorgons():
         # purple = temporary Mind Flayer creature (gives no power)
         _marker(surf, at(f"D{d.id}", d.pos), theme.PURPLE if d.temporary else (170, 60, 60), "G", f, "square")
-        _marker(surf, at("V", state.vecna.pos), (140, 0, 20), "V", f, "square")
+    _marker(surf, at("V", state.vecna.pos), (140, 0, 20), "V", f, "square")
     _marker(surf, at("E", state.eleven_pos), (240, 240, 240), "E", f)
     if anim:
         for kind, cell, start in anim.flashes:

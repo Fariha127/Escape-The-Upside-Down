@@ -57,7 +57,7 @@ class Metrics:
     def __init__(self) -> None:
         self.astar: Dict[str, AStarStats] = {}
         self.minimax = MinimaxStats()
-        self.mcts: Dict[str, MCTSStats] = {}        # role -> stats ('eleven' now, 'mind_flayer' in Phase 7)
+        self.mcts: Dict[str, MCTSStats] = {}        # role -> stats 
 
     def _stats(self, role: str) -> AStarStats:
         return self.astar.setdefault(role, AStarStats())

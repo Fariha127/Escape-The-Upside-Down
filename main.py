@@ -1,4 +1,4 @@
-"""Escape the Upside Down - entry point (Phase 8: menu, HUD, AI panel, results screen). Run: python main.py
+"""Escape the Upside Down - entry point (menu, HUD, AI panel, results screen). Run: python main.py
 
 The screens live in ui/. This file only creates the window and switches between them.
 

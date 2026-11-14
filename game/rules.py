@@ -60,7 +60,7 @@ def demogorgon_hit(state: GameState, d: Demogorgon) -> bool:
 
 
 def vecna_hit(state: GameState) -> bool:
-    """Vecna's strike (used by his Phase 5 controller). Vecna is never killed or removed."""
+    """Vecna's strike, Vecna is never killed or removed."""
     if state.vecna.is_frozen:
         return False
     damage_eleven(state, config.VECNA_DAMAGE, "Vecna")

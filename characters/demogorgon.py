@@ -1,4 +1,4 @@
-"""Demogorgon: melee pursuer. Its movement AI (A*) arrives in Phase 3."""
+
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING

@@ -44,4 +44,9 @@ def test_session_plays_without_an_audio_device(monkeypatch):
     monkeypatch.setattr(config, "SOUND_ENABLED", True)
     session = GameSession()
     monkeypatch.setattr(session.sound, "_start", lambda: False)    # pretend there is no sound card
-    session.ai_one_turn()                                           # must not raise
+    session.ai_one_turn()  
+    
+
+def test_mind_flayer_waking_has_its_own_sound():
+    assert "mind_flayer" in sound.events_between(snap(), snap(mind_flayer_awake=True))
+    assert "mind_flayer" not in sound.events_between(snap(mind_flayer_awake=True), snap(mind_flayer_awake=True))                                         # must not raise

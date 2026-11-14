@@ -63,3 +63,10 @@ def test_session_overlay_and_drawing_work_with_animation():
         session.ai_one_turn()
         o = session.overlay()
         game_screen.draw_board(surf, session.state, fonts, o)
+
+
+
+def test_marker_letters_are_readable_on_dark_markers():
+    from ui import game_screen
+    assert game_screen._letter_color((140, 0, 20)) == (255, 255, 255)      # Vecna
+    assert game_screen._letter_color((240, 240, 240)) == (0, 0, 0)         # Eleven
