@@ -17,7 +17,7 @@ from game.board import Pos
 from game.board_gen import generate_board
 from game.state import GameState
 from game.turn_manager import TurnManager
-from ui import game_screen
+from ui import game_screen, sound
 
 
 FIXED_SEED = config.RNG_SEED          # the seed used when RANDOM_SEED_PER_GAME is off
@@ -58,6 +58,7 @@ class GameSession:
         self.request: Optional[str] = None     # "menu" / "results" -> the screen manager reacts
         self.game_over_at: Optional[int] = None
         self._last_ai_tick = 0
+        self.sound = sound.SoundPlayer()
         self.restart()
 
     # ------------------------------------------------------------------ lifecycle
@@ -85,7 +86,9 @@ class GameSession:
         """Run one or more engine steps and remember Vecna's search if he made one this turn."""
         mm = self.tm.metrics.minimax
         calls, before = mm.calls, self.state.vecna.pos
+        before_snap = sound.snapshot(self.state)
         ok = fn()
+        self.sound.play(sound.events_between(before_snap, sound.snapshot(self.state)))
         if mm.calls > calls:
             self.vecna_last = {"from": before, "to": self.state.vecna.pos, "action": mm.last.action,
                                "score": mm.last.score}
@@ -225,9 +228,12 @@ class GameSession:
         elif key in game_screen.KEYMAP:
             action = game_screen.KEYMAP[key]
             if action in MOVE_DELTAS and tm.can_bonus_move() and action in rules.legal_eleven_actions(s):
-                self.pending_first_move, self.message = action, "Speed: pick the second move (Space = skip)"
-            elif self.human_step(action):                       # illegal moves are ignored
+                self.pending_first_move, self.message = action, "Speed: pick the second move (Space = skip)"             
+            elif self.human_step(action):
                 self.message = ""
+            elif action in MOVE_DELTAS and rules.portal_closed_to_eleven(s, rules.move_target(s, action)):
+                self.message = "The portal is closed - defeat the Mind Flayer first"
+            # other illegal moves are ignored
 
     # ------------------------------------------------------------------ what the renderer shows
     def status_text(self) -> str:

@@ -1,11 +1,13 @@
 """The portal is closed to Eleven until the Mind Flayer is defeated."""
 import config
+import pygame
 from ai.navigation import Navigator
 from game import rules
 from game.actions import Action
 from game.board_gen import generate_board
 from game.state import GameState, Winner
 from game.turn_manager import TurnManager
+from ui.session import GameSession
 
 
 def next_to_portal():
@@ -54,3 +56,11 @@ def test_generated_boards_keep_routes_without_the_portal():
         b = generate_board(seed)
         reach = b.reachable_from(b.eleven_start)
         assert b.portal in reach
+
+def test_walking_into_the_closed_portal_shows_a_message():
+    session = GameSession()
+    s = session.state
+    s.eleven_pos = (s.portal_pos[0] - 1, s.portal_pos[1])
+    session.handle_event(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_d))
+    assert s.eleven_pos != s.portal_pos
+    assert "portal is closed" in session.message
