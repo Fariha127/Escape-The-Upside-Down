@@ -68,6 +68,9 @@ EVADE_OPEN_WEIGHT = 3            # EVADE prefers open areas over dead ends: up t
 EVADE_RADIUS = 6                 # EVADE looks for a safe cell within this walking distance
 AI_TURN_DELAY_MS = 600           # AI-vs-AI: pause between turns at 1x speed
 AI_SPEEDS = (0.5, 1, 2, 4)       # AI-vs-AI speed multipliers
+SOUND_ENABLED = True             # UI: sound effects on/off (also a Settings row)
+SOUND_VOLUME = 0.4               # 0.0 - 1.0
+SOUND_SAMPLE_RATE = 22050        # Hz of the generated tones
 
 # --- Phase 7: Mind Flayer (MCTS: corrupt cells, summon creatures) ---
 MF_CORRUPT_DURATION = 2          # full turns a corrupted cell blocks everyone
