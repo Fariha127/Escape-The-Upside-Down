@@ -9,7 +9,7 @@ from typing import List, Tuple
 
 from game.state import GameState, Winner
 
-ASTAR_ROLES = (("demogorgon", "Demogorgon A*"), ("eleven", "Eleven A*"), ("radar", "Radar A*"))
+ASTAR_ROLES = (("demogorgon", "Demogorgon A*"), ("eleven", "Eleven A*"))
 
 
 # ---------------------------------------------------------------- one-line stats (also used by tests)

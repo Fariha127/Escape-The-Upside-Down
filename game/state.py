@@ -68,6 +68,8 @@ class GameState:
             friend_positions=dict(board.friend_positions),
             visited={board.eleven_start},
             portal_pos=board.portal,
+            unlocked_abilities=set(config.ABILITY_USES),     # every ability is ready from the start
+            ability_uses=dict(config.ABILITY_USES),
         )
 
     # ---------- cloning ----------

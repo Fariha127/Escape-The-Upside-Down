@@ -10,7 +10,6 @@ DESIGN DECISIONS
   * Goals: RESCUE <friend>, HUNT (kill the nearest normal Demogorgon for power), EVADE (walk to the
     safest nearby cell), PORTAL (only once every friend is rescued and the portal is open),
     FINAL (final psychic attack, or farm power until it is possible), USE <ability>.
-  * Radar is not an AI goal: the AI already knows every position, and Radar changes no outcome.
   * A GoalRun returns None when its goal is finished or no longer possible."""
 from __future__ import annotations
 from dataclasses import dataclass
@@ -46,7 +45,7 @@ class Goal:
         return f"{self.kind.value} {self.arg}" if self.arg else self.kind.value
 
 
-# Abilities the AI may choose (Radar is informational only, see module docstring)
+# Abilities the AI may choose
 AI_ABILITIES = ("FREEZE", "SPEED", "TELEPORT")
 _ABILITY_ACTION = {"FREEZE": Action.USE_FREEZE, "SPEED": Action.USE_SPEED, "TELEPORT": Action.USE_TELEPORT}
 
@@ -87,12 +86,23 @@ def applicable_goals(state) -> List[Goal]:
             and state.eleven_power >= config.DEMOGORGON_ATTACK_COST and normal_demogorgons(state)):
         goals.append(Goal(Kind.FINAL))
     legal = set(legal_eleven_actions(state))
-    for a in AI_ABILITIES:
-        if _ABILITY_ACTION[a] in legal:
-            goals.append(Goal(Kind.ABILITY, a))
+    if not config.ELEVEN_ABILITIES_ONLY_IN_DANGER or enemy_near(state, config.ELEVEN_ABILITY_DANGER_DISTANCE):
+        for a in AI_ABILITIES:
+            if _ABILITY_ACTION[a] in legal:
+                goals.append(Goal(Kind.ABILITY, a))
     return goals
 
+def enemy_near(state, distance: int) -> bool:
+    """True when a living enemy (Vecna or a Demogorgon) is within `distance` walking steps of Eleven."""
 
+    enemies = [state.vecna.pos] + [
+        d.pos for d in state.living_demogorgons()
+    ]
+
+    return any(
+        walk_distance(state.board, state.eleven_pos, p) <= distance
+        for p in enemies
+    )
 _OPEN_CACHE: dict = {}
 OPEN_LOOKAHEAD = 3          # "openness" of a cell = number of cells within this many steps (dead ends score low)
 OPEN_MAX = 2 * OPEN_LOOKAHEAD * (OPEN_LOOKAHEAD + 1)       # cells in a full diamond (24), excluding the centre

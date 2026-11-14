@@ -68,8 +68,7 @@ def test_same_seed_gives_the_same_game():
 
 
 def test_different_seeds_give_different_games():
-    assert any(trajectory(1) != trajectory(s) for s in (2, 3, 4, 5))
-
+    assert any(trajectory(1, 100) != trajectory(s, 100) for s in (2, 3, 4, 5))    # abilities only fire near enemies, so look further
 
 def test_each_new_session_game_gets_its_own_seed(monkeypatch):
     from ui.session import GameSession

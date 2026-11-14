@@ -33,23 +33,20 @@ def test_cannot_rescue_from_far_away():
     assert friends.rescue_friend(s, "Dustin") is False and not s.rescued
 
 
-def test_rescue_in_range_unlocks_ability_with_configured_uses():
+def test_rescue_in_range_marks_the_friend_rescued_once():
     s = fresh()
     s.eleven_pos = (3, 7)                       # adjacent to Dustin at (2,7)
     assert friends.rescuable_friends(s) == ["Dustin"]
     assert friends.rescue_friend(s, "Dustin")
-    assert "Dustin" in s.rescued and "RADAR" in s.unlocked_abilities
-    assert s.ability_uses["RADAR"] == config.ABILITY_USES["RADAR"]
+    assert "Dustin" in s.rescued
     assert friends.rescue_friend(s, "Dustin") is False          # no double rescue
-    assert eleven.has_ability(s, "RADAR")
-    s.ability_uses["RADAR"] = 0
-    assert not eleven.has_ability(s, "RADAR")
 
-
-def test_each_friend_maps_to_right_ability():
-    assert {f: friends.ability_for(f) for f in friends.FRIEND_NAMES} == {
-        "Mike": "TELEPORT", "Dustin": "RADAR", "Lucas": "SPEED", "Will": "FREEZE"}
-
+def test_abilities_are_ready_from_the_start_and_run_out_after_their_uses():
+    s = fresh()
+    for ability, uses in config.ABILITY_USES.items():
+        assert eleven.has_ability(s, ability) and s.ability_uses[ability] == uses == 1
+        s.ability_uses[ability] = 0
+        assert not eleven.has_ability(s, ability)
 
 def test_rescuing_other_friends_does_not_wake_mind_flayer():
     s = fresh(); s.eleven_pos = (3, 7)
