@@ -3,9 +3,7 @@
 The screens live in ui/. This file only creates the window and switches between them.
 
 Human controls: WASD/arrows move | Space wait | E attack adjacent Demogorgon | F rescue a friend in range
-1 Radar | 2 Speed | 3 Teleport (then click a highlighted cell, Esc cancels) | 4 Freeze | X final attack
-Speed: after the first move the game asks for a second move (Space = skip it).
-
+1 Speed | 2 Teleport (then click a highlighted cell, Esc cancels) | 3 Freeze | X final attack
 AI controls: T switch AI-vs-AI on/off | N the AI plays ONE turn (also works in human mode)
 In AI-vs-AI mode: Space pause/resume | + / - speed (0.5x 1x 2x 4x) | on-screen buttons do the same
 Always: P show paths (A*, Eleven's goal, Vecna's last choice) | R restart | M menu | Esc cancel

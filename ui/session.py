@@ -1,7 +1,8 @@
 """One running game (Human vs AI or AI vs AI): input handling, the AI-vs-AI clock and the overlay data.
 
 The GameSession never draws. It owns the GameState / TurnManager / ElevenAI and only changes the game
-through TurnManager.step, exactly like the old main loop did. Human and AI turns use the same engine."""
+through TurnManager.step, exactly like the old main loop did. Human and AI turns use the same engine.
+Teleport unavailable (already used, or no safe visited cell)"""
 from __future__ import annotations
 import random
 from typing import Dict, List, Optional, Tuple
@@ -244,8 +245,7 @@ class GameSession:
 
     def overlay(self) -> Dict:
         """Everything the renderer needs besides the state. Every value is read from a real run."""
-        o: Dict = {"message": self.message, "radar": self.tm.radar_readings,
-                   "status": self.status_text(), "show_paths": self.show_paths,
+        o: Dict = {"message": self.message, "status": self.status_text(), "show_paths": self.show_paths,
                    "ai_mode": self.ai_mode, "seed": self.seed, "log_offset": self.log_offset}
         now = pygame.time.get_ticks()
         self.animator.update(self.state, now, animation.slide_duration_ms(self.ai_mode, self.speed))

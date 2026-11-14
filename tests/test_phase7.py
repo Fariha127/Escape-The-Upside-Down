@@ -4,6 +4,7 @@ import random
 import pytest
 
 import config
+from abilities import teleport
 import main as game_main
 from ai.astar import find_path
 from ai.eleven_ai import ElevenAI
@@ -445,7 +446,8 @@ def test_random_games_with_an_awake_mind_flayer_keep_invariants(seed):
     tm = TurnManager(s, mind_flayer_ai=MindFlayerAI(simulations=40))
     tm.mind_flayer_ai.metrics = tm.metrics
     while not s.game_over:
-        assert tm.step(rng.choice(legal_eleven_actions(s)))
+        action = rng.choice(legal_eleven_actions(s))
+        assert tm.step(action, target=teleport.best_safe_cell(s) if action == Action.USE_TELEPORT else None)
         check_invariants(s)
     assert s.winner in (Winner.ENEMIES, Winner.ELEVEN)
 

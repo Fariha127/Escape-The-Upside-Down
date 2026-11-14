@@ -24,17 +24,13 @@ def draw_portrait(surf: pygame.Surface, rect: pygame.Rect, name: str, rescued: b
 
 def draw_ability_icon(surf: pygame.Surface, rect: pygame.Rect, ability: str, unlocked: bool,
                       active: bool, uses: int) -> None:
-    """One ability symbol: Radar = waves, Speed = chevrons, Teleport = portal ring, Freeze = snowflake."""
+    """One ability symbol: Speed = chevrons, Teleport = portal ring, Freeze = snowflake."""
     usable = unlocked and uses > 0
     color = theme.CYAN if usable else (70, 72, 96)
     pygame.draw.rect(surf, (30, 70, 90) if active else theme.CARD_BG, rect, border_radius=6)
     cx, cy = rect.center
     r = rect.width // 2 - 7
-    if ability == "RADAR":
-        for k in (1, 2, 3):
-            pygame.draw.circle(surf, color, (cx - 6, cy + 6), k * r // 2, 2, draw_top_right=True)
-        pygame.draw.circle(surf, color, (cx - 6, cy + 6), 2)
-    elif ability == "SPEED":
+    if ability == "SPEED":
         for off in (-6, 4):
             pygame.draw.lines(surf, color, False,
                               [(cx + off - 5, cy - r + 2), (cx + off + 3, cy), (cx + off - 5, cy + r - 2)], 3)

@@ -7,11 +7,10 @@ from __future__ import annotations
 from typing import List, Optional
 
 import config
-from abilities import radar, speed
+from abilities import speed
 from ai.demogorgon_ai import DemogorgonAI
 from ai.metrics import Metrics
 from ai.mind_flayer_ai import MindFlayerAI
-from ai.radar_scan import RadarReading, scan
 from ai.vecna_ai import VecnaAI
 from game.actions import Action, MOVE_DELTAS
 from game.board import Pos
@@ -31,7 +30,6 @@ class TurnManager:
         self.demogorgon_ai = demogorgon_ai or DemogorgonAI(self.metrics)
         self.vecna_ai = vecna_ai or VecnaAI(self.metrics)
         self.mind_flayer_ai = mind_flayer_ai or MindFlayerAI(self.metrics)
-        self.radar_readings: List[RadarReading] = []   # current Radar report (empty when Radar is off)
 
     def can_bonus_move(self) -> bool:
         """True while Speed is active, i.e. Eleven may add a second move to this turn."""
@@ -72,7 +70,6 @@ class TurnManager:
         # 11-12. cooldowns, status effects, corruption timers
         s.phase = Phase.UPKEEP
         self._update_timers()
-        self._update_radar()
         # 13. win / loss
         check_win_loss(s)
         # 14. advance counter
@@ -109,11 +106,6 @@ class TurnManager:
     def _resolve_eleven_interactions(self) -> None:
         """Rescue, attack, ability and hazard effects already resolved inside apply_eleven_action
         (so simulations share the rules). Nothing is left to do here yet."""
-
-    # ---- Radar report (after the timers tick, so it shows for RADAR_DURATION turns) ----
-    def _update_radar(self) -> None:
-        """While Radar is active, run one real A* search per enemy; otherwise clear the report."""
-        self.radar_readings = scan(self.state, self.metrics) if radar.is_active(self.state) else []
 
     # ---- steps 6-8: Vecna (Minimax + Alpha-Beta) ----
     def _vecna_phase(self) -> None:

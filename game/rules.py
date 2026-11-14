@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import List, Optional
 
 import config
-from abilities import freeze, radar, speed, teleport
+from abilities import freeze, speed, teleport
 from characters import eleven as eleven_stats
 from characters import friends as friend_rules
 from characters import mind_flayer as mf_rules
@@ -107,8 +107,6 @@ def legal_eleven_actions(state: GameState) -> List[Action]:
         actions.append(Action.ATTACK)
     if friend_rules.rescuable_friends(state):
         actions.append(Action.RESCUE)
-    if "RADAR" in state.unlocked_abilities and state.ability_uses.get("RADAR", 0) > 0:
-        actions.append(Action.USE_RADAR)
     if "SPEED" in state.unlocked_abilities and state.ability_uses.get("SPEED", 0) > 0 \
             and not speed.is_active(state):
         actions.append(Action.USE_SPEED)
@@ -138,8 +136,6 @@ def apply_eleven_action(state: GameState, action: Action, target: Optional[Pos] 
         gained = eleven_stats.gain_power(state, config.RESCUE_POWER_BONUS)
         state.log(f"Rescue bonus: +{gained} power")
         return True
-    elif action == Action.USE_RADAR:
-        return radar.use(state)
     elif action == Action.USE_SPEED:
         return speed.use(state)
     elif action == Action.USE_TELEPORT:

@@ -121,9 +121,10 @@ def howto_blocks():
                      f"{config.DEMOGORGON_REWARD}. A Demogorgon hit costs {config.DEMOGORGON_DAMAGE} HP, Vecna's hit "
                      f"{config.VECNA_DAMAGE} HP. Vecna cannot be killed."),
         ("Friends", f"F rescues a friend within {config.RESCUE_RANGE} cell. Each rescue gives "
-                    f"{config.RESCUE_POWER_BONUS} power and an ability: Dustin Radar (1), Lucas Speed (2), "
-                    "Mike Teleport (3, then click a highlighted cell), Will Freeze (4). Rescuing Will wakes the "
-                    "Mind Flayer."),
+                     f"{config.RESCUE_POWER_BONUS} power. Rescuing Will wakes the Mind Flayer."),
+        ("Abilities", "All three are ready from the start and each can be used once: Speed (1) gives two moves per "
+                      "turn, Teleport (2, then click a highlighted cell) jumps to a safe visited cell, Freeze (3) "
+                      "stops every enemy for a few turns."),
         ("Final attack", f"X needs the Mind Flayer awake and at least {config.FINAL_POWER_REQUIREMENT} power. It "
                          "defeats the Mind Flayer and opens the portal. Until then the portal cell is closed and "
                          "Eleven cannot step on it."),

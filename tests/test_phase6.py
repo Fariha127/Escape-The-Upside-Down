@@ -40,12 +40,9 @@ def fresh(kill_demogorgons=True, freeze_vecna=False):
 
 
 def rescue_all(s):
-    """Mark every friend rescued with their ability unlocked and stocked (no Mind Flayer wake-up)."""
+    """Mark every friend rescued (no Mind Flayer wake-up). The abilities are ready from the start anyway."""
     for f in FRIENDS:
-        ability = config.FRIEND_ABILITY[f]
         s.rescued.add(f)
-        s.unlocked_abilities.add(ability)
-        s.ability_uses[ability] = config.ABILITY_USES[ability]
 
 
 def snap(s):
@@ -96,14 +93,29 @@ def test_final_goal_needs_an_awake_mind_flayer_and_will():
     assert Goal(Kind.FINAL) not in applicable_goals(s)
 
 
-def test_ability_goals_follow_unlocked_abilities_and_radar_is_never_a_goal():
-    s = fresh()
-    assert not [g for g in applicable_goals(s) if g.kind == Kind.ABILITY]
-    rescue_all(s)
-    names = {g.arg for g in applicable_goals(s) if g.kind == Kind.ABILITY}
-    assert "RADAR" not in names and "RADAR" not in AI_ABILITIES
-    assert "FREEZE" in names and "SPEED" in names
+def ability_names(s):
+      return {g.arg for g in applicable_goals(s) if g.kind == Kind.ABILITY}
 
+
+def test_ability_goals_are_only_offered_while_an_enemy_is_close(monkeypatch):
+      s = fresh(kill_demogorgons=False)
+      s.eleven_pos = (1, 1)
+      far = config.ELEVEN_ABILITY_DANGER_DISTANCE
+      assert min(walk_distance(s.board, s.eleven_pos, p) for p in [s.vecna.pos] + [d.pos for d in s.demogorgons]) > far
+      assert ability_names(s) == set()                               # enemies far away: keep the single uses
+      s.vecna.pos = (1 + far, 1)
+      assert {"FREEZE", "SPEED"} <= ability_names(s)
+      monkeypatch.setattr(config, "ELEVEN_ABILITIES_ONLY_IN_DANGER", False)
+      s.vecna.pos = (13, 13)
+      assert {"FREEZE", "SPEED"} <= ability_names(s)
+
+
+def test_used_abilities_are_not_goals_and_radar_is_gone():
+      s = fresh(kill_demogorgons=False)
+      s.vecna.pos = (s.eleven_pos[0] + 1, s.eleven_pos[1])
+      s.ability_uses["FREEZE"] = 0
+      assert "FREEZE" not in ability_names(s)
+      assert "RADAR" not in AI_ABILITIES and not hasattr(Action, "USE_RADAR")
 
 def test_no_goals_after_game_over():
     s = fresh()
@@ -307,9 +319,6 @@ def test_sim_timers_match_the_real_turn_manager():
     real.visited.add(real.eleven_pos)
     for f in ("Dustin", "Lucas", "Will", "Mike"):
         real.rescued.add(f)
-        a = config.FRIEND_ABILITY[f]
-        real.unlocked_abilities.add(a)
-        real.ability_uses[a] = config.ABILITY_USES[a]
     sim = real.clone()
     tm = TurnManager(real)
     tm.step(Action.USE_SPEED)

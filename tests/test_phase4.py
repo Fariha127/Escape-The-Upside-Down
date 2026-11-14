@@ -4,8 +4,8 @@ import random
 import pytest
 
 import config
-from abilities import radar, teleport
-from ai.radar_scan import scan
+from abilities import teleport
+from characters import friends
 from characters.demogorgon import Demogorgon
 from game.actions import Action, MOVE_DELTAS
 from game.rules import (apply_eleven_action, attack_target, demogorgon_hit, legal_eleven_actions,
@@ -144,15 +144,22 @@ def test_rescue_requires_range():
     assert not apply_eleven_action(s, Action.RESCUE)
 
 
-def test_rescue_unlocks_ability_with_uses():
-    s, tm = fresh()
-    s.eleven_pos = (1, 7)          # Dustin is at (2, 7)
-    assert Action.RESCUE in legal_eleven_actions(s)
-    assert tm.step(Action.RESCUE)
-    assert "Dustin" in s.rescued
-    assert "RADAR" in s.unlocked_abilities
-    assert s.ability_uses["RADAR"] == config.ABILITY_USES["RADAR"]
+def test_rescue_gives_power_but_no_ability():
+      s, tm = fresh()
+      s.eleven_pos = (1, 7)          # Dustin is at (2, 7)
+      before = (set(s.unlocked_abilities), dict(s.ability_uses))
+      assert Action.RESCUE in legal_eleven_actions(s)
+      assert tm.step(Action.RESCUE)
+      assert "Dustin" in s.rescued
+      assert (s.unlocked_abilities, s.ability_uses) == before      # abilities do not depend on rescues
 
+
+def test_all_abilities_are_ready_from_the_start_with_one_use_each():
+      s, _ = fresh()
+      assert s.unlocked_abilities == {"SPEED", "TELEPORT", "FREEZE"}
+      assert s.ability_uses == {"SPEED": 1, "TELEPORT": 1, "FREEZE": 1}
+      assert config.ABILITY_USES == s.ability_uses
+      assert "RADAR" not in config.ABILITY_USES and not hasattr(Action, "USE_RADAR")
 
 def test_rescuing_will_awakens_mind_flayer():
     s, tm = fresh()
@@ -161,94 +168,6 @@ def test_rescuing_will_awakens_mind_flayer():
     tm.step(Action.RESCUE)
     assert s.mind_flayer.active
     assert any("THE MIND FLAYER HAS AWAKENED" in line for line in s.event_log)
-
-
-# ------------------------------------------------------------------ radar
-def bfs_steps(s, start, goal):
-    """Independent shortest-path length (plain BFS) used to check the A* numbers.
-    Only walls and corruption block: Radar measures walking distance, other characters are ignored."""
-    from collections import deque
-    blocked = set(s.corrupted)
-    dist, q = {start: 0}, deque([start])
-    while q:
-        cur = q.popleft()
-        if cur == goal:
-            return dist[cur]
-        for n in s.board.neighbors4(cur):
-            if n not in dist and n not in blocked and n not in s.corrupted:
-                dist[n] = dist[cur] + 1
-                q.append(n)
-    return None
-
-
-def test_radar_unavailable_until_dustin_rescued():
-    s, _ = fresh()
-    assert Action.USE_RADAR not in legal_eleven_actions(s)
-
-
-def test_radar_scan_matches_independent_shortest_paths():
-    s, _ = fresh()
-    add_demogorgon(s, (4, 1))
-    add_demogorgon(s, (9, 5))
-    readings = scan(s)
-    assert len(readings) == len(s.living_demogorgons()) + 1          # every enemy incl. Vecna
-    by_label = {r.label: r for r in readings}
-    for d in s.living_demogorgons():
-        assert by_label[f"Demogorgon {d.id}"].steps == bfs_steps(s, d.pos, s.eleven_pos)
-    assert by_label["Vecna"].steps == bfs_steps(s, s.vecna.pos, s.eleven_pos)
-    steps = [r.steps for r in readings]
-    assert steps == sorted(steps)                                    # nearest first
-
-
-def test_radar_still_reads_a_distance_when_enemies_box_eleven_in():
-    s, _ = fresh()
-    s.eleven_pos = (1, 7)
-    add_demogorgon(s, (1, 6))
-    add_demogorgon(s, (1, 8))                       # Eleven's corridor is blocked on both sides
-    far = add_demogorgon(s, (6, 3))
-    by_label = {r.label: r for r in scan(s)}
-    assert by_label[f"Demogorgon {far.id}"].steps == bfs_steps(s, far.pos, s.eleven_pos) is not None
-    assert all(r.steps is not None for r in by_label.values())
-
-
-def test_radar_scan_is_read_only():
-    s, _ = fresh(kill_demogorgons=False)
-    before = (s.eleven_pos, [d.pos for d in s.demogorgons], s.vecna.pos, s.turn)
-    scan(s)
-    assert (s.eleven_pos, [d.pos for d in s.demogorgons], s.vecna.pos, s.turn) == before
-
-
-def test_radar_report_shows_for_its_duration_and_uses_decrease():
-    s, tm = fresh()
-    add_demogorgon(s, (4, 1))
-    unlock(s, "RADAR", "Dustin")
-    assert tm.radar_readings == []
-    assert tm.step(Action.USE_RADAR)
-    assert s.ability_uses["RADAR"] == config.ABILITY_USES["RADAR"] - 1
-    assert radar.is_active(s) and len(tm.radar_readings) == len(s.living_demogorgons()) + 1
-    for _ in range(config.RADAR_DURATION - 1):
-        tm.step(Action.WAIT)
-        assert tm.radar_readings
-    tm.step(Action.WAIT)
-    assert not radar.is_active(s) and tm.radar_readings == []
-
-
-def test_radar_numbers_come_from_recorded_astar_runs():
-    s, tm = fresh()
-    unlock(s, "RADAR", "Dustin")
-    tm.step(Action.USE_RADAR)
-    st = tm.metrics.astar["radar"]
-    assert st.calls == len(tm.radar_readings) == 1                  # only Vecna is alive
-    assert st.nodes_explored == sum(r.nodes_explored for r in tm.radar_readings) > 0
-
-
-def test_radar_runs_out_after_its_uses():
-    s, tm = fresh()
-    unlock(s, "RADAR", "Dustin")
-    for _ in range(config.ABILITY_USES["RADAR"]):
-        assert tm.step(Action.USE_RADAR)
-    assert Action.USE_RADAR not in legal_eleven_actions(s)
-    assert not tm.step(Action.USE_RADAR)
 
 
 # ------------------------------------------------------------------ speed
@@ -465,7 +384,8 @@ def test_illegal_action_changes_nothing():
     before = (s.turn, s.eleven_pos, s.eleven_hp, s.eleven_power)
     assert not tm.step(Action.RESCUE)
     assert not tm.step(Action.ATTACK)
-    assert not tm.step(Action.USE_FREEZE)
+    s.ability_uses["FREEZE"] = 0                    # an ability that is used up cannot be used again
+    assert not tm.step(Action.USE_FREEZE)    
     assert (s.turn, s.eleven_pos, s.eleven_hp, s.eleven_power) == before
 
 
@@ -476,8 +396,7 @@ def test_random_playthrough_keeps_invariants(seed):
     s = GameState.new_game()
     tm = TurnManager(s)
     s.eleven_power = 6
-    for friend, ability in config.FRIEND_ABILITY.items():
-        unlock(s, ability, friend)
+    s.rescued.update(friends.FRIEND_NAMES)          # abilities are ready from the start
     while not s.game_over:
         acts = legal_eleven_actions(s)
         action = rng.choice(acts)

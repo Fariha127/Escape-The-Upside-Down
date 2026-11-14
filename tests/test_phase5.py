@@ -5,6 +5,7 @@ import random
 import pytest
 
 import config
+from abilities import teleport
 from ai.astar import astar_search
 from ai.distance_table import UNREACHABLE, walk_distance
 from ai.evaluation import NON_TERMINAL_LIMIT, evaluate_for_vecna, terminal_value
@@ -291,7 +292,8 @@ def test_random_games_with_vecna_keep_invariants(seed):
     s = GameState.new_game()
     tm = TurnManager(s)
     while not s.game_over:
-        assert tm.step(rng.choice(legal_eleven_actions(s)))
+        action = rng.choice(legal_eleven_actions(s))
+        assert tm.step(action, target=teleport.best_safe_cell(s) if action == Action.USE_TELEPORT else None)        
         assert s.board.is_walkable(s.vecna.pos)
         cells = [d.pos for d in s.living_demogorgons()] + [s.vecna.pos, s.eleven_pos]
         assert len(cells) == len(set(cells)), "two characters share a cell"

@@ -1,7 +1,7 @@
 """In-game renderer: board, HUD strip (bars, friend portraits, ability icons) and the AI side panel.
 
 Reads GameState and the overlay dict from GameSession; never mutates the game.
-Everything on the board is always visible; Radar adds a ring and an A* step count to each enemy.
+Everything on the board is always visible
 Every number shown comes from the state or from the recorded search statistics (ui/stats_view.py)."""
 from __future__ import annotations
 from typing import Dict, List, Optional
@@ -34,11 +34,10 @@ KEYMAP = {
 # Action keys for human play. Moves and Space are in KEYMAP above.
 ACTION_KEYS = {
     pygame.K_e: Action.ATTACK, pygame.K_f: Action.RESCUE,
-    pygame.K_1: Action.USE_RADAR, pygame.K_2: Action.USE_SPEED,
-    pygame.K_3: Action.USE_TELEPORT, pygame.K_4: Action.USE_FREEZE,
+    pygame.K_1: Action.USE_SPEED, pygame.K_2: Action.USE_TELEPORT, pygame.K_3: Action.USE_FREEZE, pygame.K_4: Action.USE_FREEZE,
     pygame.K_x: Action.FINAL_ATTACK,
 }
-ABILITY_ORDER = (("RADAR", "1"), ("SPEED", "2"), ("TELEPORT", "3"), ("FREEZE", "4"))
+ABILITY_ORDER = (("SPEED", "1"), ("TELEPORT", "2"), ("FREEZE", "3"))
 
 
 # ---------------------------------------------------------------- geometry
@@ -195,13 +194,6 @@ def draw_board(surf: pygame.Surface, state: GameState, fonts: theme.Fonts, overl
         cx, cy = _centre(vc["to"])
         draw_text(surf, fonts.tiny, label, (cx, cy - CELL // 2 - 1), (255, 140, 140), "center")
 
-    for rd in overlay.get("radar", []):         # Radar: ring + real A* step count above each enemy
-        cx, cy = _centre(rd.pos)
-        pygame.draw.circle(surf, theme.GOLD, (cx, cy), CELL // 2 - 1, 2)
-        draw_text(surf, fonts.small, str(rd.steps) if rd.steps is not None else "-",
-                  (cx, cy - CELL // 2 - 2), theme.GOLD, "center")
-
-
 # ---------------------------------------------------------------- HUD strip
 def _status_text(state: GameState) -> str:
     parts = [f"{k} {v}t" for k, v in sorted(state.status_effects.items())]
@@ -324,7 +316,7 @@ def draw_log(surf: pygame.Surface, state: GameState, fonts: theme.Fonts, rect: p
 def draw(surf: pygame.Surface, state: GameState, tm, fonts: theme.Fonts, overlay: Optional[Dict] = None,
          buttons: Optional[List[Button]] = None, mouse_pos=None) -> None:
     """overlay: {'demogorgon_paths': {id: [cells]}, 'eleven_path': [cells], 'teleport_cells': [cells],
-    'radar': [RadarReading], 'message': str, 'status': str, 'goal': str, 'goal_target': cell,
+    'message': str, 'status': str, 'goal': str, 'goal_target': cell,
     'vecna_choice': {'from','to','action','score'}} - every number comes from real runs."""
     overlay = overlay or {}
     surf.fill(theme.BG)
