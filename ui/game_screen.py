@@ -12,7 +12,7 @@ import config
 from game.actions import Action
 from game.board import Terrain
 from game.state import GameState, Winner
-from ui import theme
+from ui import sprites, theme
 from ui.icons import draw_ability_icon, draw_portrait
 from ui.log_view import visible_entries
 from ui.stats_view import stats_sections
@@ -131,6 +131,10 @@ def _marker(surf, pos, color, letter, font, shape="circle"):
     t = font.render(letter, True, _letter_color(color))
     surf.blit(t, t.get_rect(center=(cx, cy)))
 
+def _piece(surf, key, pos, color, letter, font, shape="circle", tint=None):
+    """A character: its picture if there is one, otherwise the letter marker."""
+    if not sprites.draw(surf, key, _centre(pos), tint):
+        _marker(surf, pos, color, letter, font, shape)
 
 def _draw_path(surf, path, color, radius=4):
     for cell in path:
@@ -172,15 +176,16 @@ def draw_board(surf: pygame.Surface, state: GameState, fonts: theme.Fonts, overl
 
     def at(key, cell):                          # where a moving piece is drawn right now
         return anim.cell_pos(key, cell, now) if anim else cell
-    _marker(surf, state.portal_pos, theme.CYAN if state.portal_active else (40, 80, 110), "P", f, "square")
+    _piece(surf, "portal", state.portal_pos, theme.CYAN if state.portal_active else (40, 80, 110), "P", f, "square")
     for name, p in state.friend_positions.items():
         if name not in state.rescued:
-            _marker(surf, p, theme.FRIEND_COLORS.get(name, theme.GOLD), name[0], f)
+            _piece(surf, name.lower(), p, theme.FRIEND_COLORS.get(name, theme.GOLD), name[0], f)
     for d in state.living_demogorgons():
         # purple = temporary Mind Flayer creature (gives no power)
-        _marker(surf, at(f"D{d.id}", d.pos), theme.PURPLE if d.temporary else (170, 60, 60), "G", f, "square")
-    _marker(surf, at("V", state.vecna.pos), (140, 0, 20), "V", f, "square")
-    _marker(surf, at("E", state.eleven_pos), (240, 240, 240), "E", f)
+        _piece(surf, "demogorgon", at(f"D{d.id}", d.pos), theme.PURPLE if d.temporary else (170, 60, 60), "G", f,
+               "square", tint=sprites.TINT_PURPLE if d.temporary else None)
+    _piece(surf, "vecna", at("V", state.vecna.pos), (140, 0, 20), "V", f, "square")
+    _piece(surf, "eleven", at("E", state.eleven_pos), (240, 240, 240), "E", f)
     if anim:
         for kind, cell, start in anim.flashes:
             _flash(surf, kind, cell, anim.flash_strength(start, now))
