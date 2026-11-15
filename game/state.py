@@ -50,6 +50,7 @@ class GameState:
     phase: Phase = Phase.ELEVEN
     winner: Winner = Winner.NONE
     max_turns: int = config.MAX_TURNS
+    stuck_turns: int = 0                           # turns in a row Eleven has had no way out (see rules.is_eleven_trapped)
     event_log: List[str] = field(default_factory=list)   # human-readable events this game
 
     # ---------- construction ----------
@@ -96,6 +97,7 @@ class GameState:
             phase=self.phase,
             winner=self.winner,
             max_turns=self.max_turns,
+            stuck_turns=self.stuck_turns,
             event_log=list(self.event_log),
         )
 

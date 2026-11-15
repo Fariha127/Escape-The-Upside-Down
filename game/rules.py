@@ -146,9 +146,16 @@ def apply_eleven_action(state: GameState, action: Action, target: Optional[Pos] 
         return mf_rules.final_attack(state)
     return True  # WAIT: nothing to do
 
+def is_eleven_trapped(state: GameState) -> bool:
+    """True when Eleven has no way out right now: she cannot move to any neighbour cell, attack, rescue,
+    final-attack or teleport. Only WAIT, Speed and Freeze are left, and none of them gets her moving."""
+    way_out = set(MOVE_DELTAS) | {Action.ATTACK, Action.RESCUE, Action.USE_TELEPORT, Action.FINAL_ATTACK}
+    return not any(a in way_out for a in legal_eleven_actions(state))
+
 
 def check_win_loss(state: GameState) -> None:
-    """Win needs ALL conditions (reaching the portal alone is not enough). Loss: HP<=0 or turn cap."""
+    """Win needs ALL conditions (reaching the portal alone is not enough).
+    Loss: HP<=0, trapped for STUCK_TURNS_LIMIT turns in a row, or the turn cap."""
     from game.state import Winner
     if state.game_over:
         return
@@ -160,6 +167,11 @@ def check_win_loss(state: GameState) -> None:
     if all_friends and state.mind_flayer.defeated and state.eleven_pos == state.portal_pos:
         state.winner = Winner.ELEVEN
         state.log("Eleven escaped through the portal!")
+        return
+    state.stuck_turns = state.stuck_turns + 1 if is_eleven_trapped(state) else 0
+    if state.stuck_turns >= config.STUCK_TURNS_LIMIT:
+        state.winner = Winner.ENEMIES
+        state.log("Eleven is trapped with no way out.")
         return
     if state.turn + 1 >= state.max_turns:
         state.winner = Winner.ENEMIES
