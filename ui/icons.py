@@ -11,7 +11,7 @@ MF_TILE_BG = (255, 255, 255)             # white, so the dark Mind Flayer pictur
 MF_ASLEEP_ALPHA = 130                    # the picture is faded while the Mind Flayer is still asleep
 MF_DEFEATED_ALPHA = 70
 MF_PAD = 4
-MF_LOOM_ALPHA = 85                       # how strongly the looming Mind Flayer shows over the board (0-255)
+MF_LOOM_ALPHA = 45                      # how strongly the looming Mind Flayer shows over the board (0-255)
 MF_LOOM_TINT = (190, 30, 60)             # added to the dark picture so it glows red on the dark board
 MF_LOOM_WIDTH = 0.9                      # picture width as a share of the board width
 MF_LOOM_DROP = 60                        # how far below the top of the board the picture starts (pixels)
@@ -20,19 +20,20 @@ MF_BORDER_W = 5
 _loom_cache: Dict[Tuple[int, int], Optional[pygame.Surface]] = {}
 _mf_cache: Dict[Tuple[int, int], Optional[pygame.Surface]] = {}
 
-UNRESCUED_SHADE = (60, 60, 85)           # multiplied into a friend's picture until they are rescued
-
+HEART_STEP = 17                          # distance between two hearts in the HUD
+UNRESCUED_LIFT = 70                      # added to the grey picture of a friend who is not rescued yet (brighter)
+UNRESCUED_TILE_BG = (78, 84, 122)        # lighter tile behind that grey picture
 
 def draw_portrait(surf: pygame.Surface, rect: pygame.Rect, name: str, rescued: bool, font) -> None:
-    """A rounded tile with a simple face-like badge and the friend's initial.
-    Unrescued friends are greyed out; rescued ones are shown in their own colour."""
+    """A rounded tile with the friend's picture (or a simple face-like badge and the initial if there is no picture).
+    Unrescued friends are shown in grey; rescued ones are shown in their own colour."""
     color = theme.FRIEND_COLORS.get(name, theme.GOLD) if rescued else (60, 62, 84)
-    pygame.draw.rect(surf, theme.CARD_BG, rect, border_radius=6)
+    pygame.draw.rect(surf, theme.CARD_BG if rescued else UNRESCUED_TILE_BG, rect, border_radius=6)
     pic = sprites.load(name.lower()) if config.SPRITES_ENABLED else None
-    if pic is not None:                   # the friend's picture; dark until they are rescued
+    if pic is not None:                   # the friend's picture; grey until they are rescued
         if not rescued:
-            pic = pic.copy()
-            pic.fill((*UNRESCUED_SHADE, 255), special_flags=pygame.BLEND_RGBA_MULT)
+            pic = pygame.transform.grayscale(pic)
+            pic.fill((UNRESCUED_LIFT, UNRESCUED_LIFT, UNRESCUED_LIFT, 0), special_flags=pygame.BLEND_RGB_ADD)
         surf.blit(pic, pic.get_rect(midbottom=(rect.centerx, rect.bottom - 3)))
         pygame.draw.rect(surf, color if rescued else theme.CARD_EDGE, rect, 2, border_radius=6)
         return
@@ -114,3 +115,17 @@ def draw_mind_flayer_looming(surf: pygame.Surface, board_rect: pygame.Rect) -> N
     if pic is not None and config.SPRITES_ENABLED:
         surf.blit(pic, pic.get_rect(midtop=(board_rect.centerx, board_rect.top + MF_LOOM_DROP)))
     surf.blit(edge, board_rect.topleft)
+
+
+
+def draw_hearts(surf: pygame.Surface, topleft: Tuple[int, int], value: int, maximum: int, color, empty,
+                step: int = HEART_STEP, size: int = 7) -> None:
+    """A row of hearts: `value` filled, the rest empty (one heart per HP point)."""
+    x0, y0 = topleft
+    for k in range(maximum):
+        c = color if k < value else empty
+        cx = x0 + k * step + size
+        pygame.draw.circle(surf, c, (cx - size // 2, y0 + size // 2 + 1), size // 2 + 1)
+        pygame.draw.circle(surf, c, (cx + size // 2, y0 + size // 2 + 1), size // 2 + 1)
+        pygame.draw.polygon(surf, c, [(cx - size - 1, y0 + size // 2 + 3), (cx + size + 1, y0 + size // 2 + 3),
+                                      (cx, y0 + size * 2 + 1)])

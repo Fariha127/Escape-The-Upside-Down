@@ -6,7 +6,7 @@ import pygame
 
 # --- layout (pixels) ---
 CELL = 36                 # one board cell
-HUD_H = 172               # height of the HUD strip above the board
+HUD_H = 182               # height of the HUD strip above the board
 PANEL_W = 420             # width of the AI side panel to the right of the board
 LINE_H = 14               # line spacing inside panel cards
 CARD_HEADER_H = 22        # title row of a panel card
@@ -17,6 +17,13 @@ PANEL_BG = (13, 16, 32)
 CARD_BG = (21, 25, 48)
 CARD_EDGE = (44, 50, 86)
 GRID_LINE = (34, 38, 62)
+CARD_LIGHT = (20, 24, 48)           # HUD cards (dark, as in the mockup; the name is kept from the first version)
+CARD_LIGHT_EDGE = (62, 72, 118)
+INK = (255, 255, 255)               # text on the HUD cards: white
+INK_DIM = (150, 165, 205)           # greyed names (friends not rescued yet)
+INK_RED = (240, 70, 80)
+BAR_LIGHT_BACK = (44, 50, 82)
+EMPTY_HEART = (64, 50, 72)
 TEXT = (230, 230, 240)
 DIM = (130, 130, 160)
 GOLD = (240, 200, 60)

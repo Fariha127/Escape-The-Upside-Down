@@ -12,8 +12,9 @@ import config
 from game.actions import Action
 from game.board import Terrain
 from game.state import GameState, Winner
-from ui import portal, sprites, theme
-from ui.icons import draw_ability_icon, draw_mind_flayer_card, draw_mind_flayer_looming, draw_portrait
+from ui import emoji, icons, portal, sprites, theme
+from ui.icons import (draw_ability_icon, draw_hearts, draw_mind_flayer_card, draw_mind_flayer_looming,
+                      draw_portrait)
 from ui.log_view import visible_entries
 from ui.stats_view import stats_sections
 from ui.theme import CARD_HEADER_H, CELL, HUD_H, LINE_H, PANEL_W
@@ -112,8 +113,9 @@ def log_capacity(state: GameState, window_h: int) -> int:
     """How many event log lines fit in the log card."""
     rect = panel_layout(state, window_h)[1]
     return max(1, (rect.height - CARD_HEADER_H - 4) // LINE_H)
-MF_CARD_W, MF_CARD_H = 90, 40       # size of the Mind Flayer picture tile in the HUD
-MF_CARD_X = 424                      # its left edge: right next to the three ability icons
+HUD_CARD_PAD = 8                     # space inside a HUD card
+HUD_ROW1_Y, HUD_ROW1_H = 6, 56       # top row of HUD cards (Eleven, Turn)
+HUD_ROW2_Y, HUD_ROW2_H = 66, 72      # second row (Friends, Abilities, Mind Flayer)
 LIGHT_LETTER_BELOW = 90      # markers darker than this (brightness 0-255) get a white letter instead of black
 
 
@@ -208,49 +210,73 @@ def _status_text(state: GameState) -> str:
     return ("Active: " + ", ".join(parts)) if parts else ""
 
 
+def _hud_card(surf: pygame.Surface, rect: pygame.Rect, title: str, fonts: theme.Fonts) -> None:
+    """A light HUD card with a small dark title."""
+    pygame.draw.rect(surf, theme.CARD_LIGHT, rect, border_radius=8)
+    pygame.draw.rect(surf, theme.CARD_LIGHT_EDGE, rect, 1, border_radius=8)
+    draw_text(surf, fonts.tiny, title, (rect.x + HUD_CARD_PAD, rect.y + 4), theme.INK_DIM)
+
+
 def draw_hud(surf: pygame.Surface, state: GameState, fonts: theme.Fonts, overlay: Dict) -> None:
     w = board_width(state)
     pygame.draw.rect(surf, theme.PANEL_BG, (0, 0, w, HUD_H))
-    # bars
-    draw_text(surf, fonts.small, "HP", (10, 9), theme.DIM)
-    draw_bar(surf, pygame.Rect(42, 8, 190, 16), state.eleven_hp, config.MAX_HP, theme.HP_COLOR)
-    draw_text(surf, fonts.small, f"{state.eleven_hp}/{config.MAX_HP}", (240, 9))
-    draw_text(surf, fonts.small, "PWR", (10, 31), theme.DIM)
-    draw_bar(surf, pygame.Rect(42, 30, 190, 16), state.eleven_power, config.MAX_POWER, theme.POWER_COLOR)
-    draw_text(surf, fonts.small, f"{state.eleven_power}/{config.MAX_POWER}", (240, 31))
-    # turn + Mind Flayer
-    draw_text(surf, fonts.body, f"Turn {state.turn}/{state.max_turns}", (w - 10, 6), theme.TEXT, "topright")
-    mf = "DEFEATED" if state.mind_flayer.defeated else ("AWAKE" if state.mind_flayer.active else "asleep")
-    draw_text(surf, fonts.small, f"Mind Flayer: {mf}", (w - 10, 30),
-              theme.RED if mf == "AWAKE" else theme.DIM, "topright")
-    # friend portraits
-    draw_text(surf, fonts.tiny, "FRIENDS", (10, 54), theme.DIM)
+    row1, row2 = HUD_ROW1_Y, HUD_ROW2_Y
+    # Eleven: hearts + power bar
+    eleven = pygame.Rect(6, row1, 262, HUD_ROW1_H)
+    _hud_card(surf, eleven, "ELEVEN", fonts)
+    draw_hearts(surf, (eleven.x + HUD_CARD_PAD, eleven.y + 19), state.eleven_hp, config.MAX_HP, theme.HP_COLOR,
+                theme.EMPTY_HEART)
+    emoji.draw(surf, "speed", (eleven.x + HUD_CARD_PAD + 8, eleven.y + 44), 16)
+    draw_bar(surf, pygame.Rect(eleven.x + 34, eleven.y + 38, 150, 12), state.eleven_power, config.MAX_POWER,
+             theme.POWER_COLOR, back=theme.BAR_LIGHT_BACK, edge=theme.CARD_LIGHT_EDGE)
+    draw_text(surf, fonts.small, f"{state.eleven_power}/{config.MAX_POWER}", (eleven.x + 192, eleven.y + 37),
+              theme.INK)
+    draw_text(surf, fonts.small, f"{state.eleven_hp}/{config.MAX_HP} HP",
+              (eleven.x + HUD_CARD_PAD + config.MAX_HP * icons.HEART_STEP + 8, eleven.y + 19), theme.INK)
+    # turn counter + progress
+    turn = pygame.Rect(274, row1, w - 274 - 6, HUD_ROW1_H)
+    _hud_card(surf, turn, "TURN", fonts)
+    draw_text(surf, fonts.body, f"{state.turn} / {state.max_turns}", (turn.x + HUD_CARD_PAD, turn.y + 18), theme.INK)
+    bar = pygame.Rect(turn.x + HUD_CARD_PAD, turn.bottom - 12, turn.width - 2 * HUD_CARD_PAD, 6)
+    draw_bar(surf, bar, state.turn, state.max_turns, theme.CYAN, back=theme.BAR_LIGHT_BACK,
+             edge=theme.CARD_LIGHT_EDGE)
+    # friends: picture + name
+    friends = pygame.Rect(6, row2, 226, HUD_ROW2_H)
+    _hud_card(surf, friends, f"FRIENDS  {len(state.rescued)}/{len(theme.FRIEND_ORDER)}", fonts)
     for i, name in enumerate(theme.FRIEND_ORDER):
-        draw_portrait(surf, pygame.Rect(10 + i * 46, 68, 40, 40), name, name in state.rescued, fonts.small)
-    # ability icons
-    draw_text(surf, fonts.tiny, "ABILITIES  [key] uses left", (214, 54), theme.DIM)
+        x = friends.x + HUD_CARD_PAD + i * 53
+        got = name in state.rescued
+        draw_portrait(surf, pygame.Rect(x, friends.y + 17, 46, 38), name, got, fonts.small)
+        draw_text(surf, fonts.tiny, name, (x + 23, friends.y + 57), theme.INK if got else theme.INK_DIM, "midtop")
+    # abilities
+    abil = pygame.Rect(238, row2, 168, HUD_ROW2_H)
+    _hud_card(surf, abil, "ABILITIES  [key] uses", fonts)
     for i, (key, hotkey) in enumerate(ABILITY_ORDER):
-        rect = pygame.Rect(214 + i * 78, 68, 40, 40)
+        rect = pygame.Rect(abil.x + HUD_CARD_PAD + i * 52, abil.y + 17, 40, 38)
         unlocked = key in state.unlocked_abilities
         uses = state.ability_uses.get(key, 0)
         draw_ability_icon(surf, rect, key, unlocked, state.status_effects.get(key, 0) > 0, uses)
         label = f"[{hotkey}] x{uses}" if unlocked else f"[{hotkey}] locked"
-        draw_text(surf, fonts.tiny, label, (rect.centerx, rect.bottom + 3), theme.TEXT if unlocked else theme.DIM,
+        draw_text(surf, fonts.tiny, label, (rect.centerx, rect.bottom + 3), theme.INK if unlocked else theme.INK_DIM,
                   "midtop")
-    # Mind Flayer picture (white tile, faded until it wakes up)
-    draw_mind_flayer_card(surf, pygame.Rect(MF_CARD_X, 56, MF_CARD_W, MF_CARD_H), state.mind_flayer.active,
+    # Mind Flayer: picture + state
+    mf = pygame.Rect(412, row2, w - 412 - 6, HUD_ROW2_H)
+    _hud_card(surf, mf, "MIND FLAYER", fonts)
+    draw_mind_flayer_card(surf, pygame.Rect(mf.x + 6, mf.y + 17, mf.width - 12, 38), state.mind_flayer.active,
                           state.mind_flayer.defeated)
-
-    # status lines
+    word = "DEFEATED" if state.mind_flayer.defeated else ("AWAKE" if state.mind_flayer.active else "asleep")
+    draw_text(surf, fonts.tiny, word, (mf.centerx, mf.y + 57), theme.INK_RED if word == "AWAKE" else theme.INK_DIM,
+              "midtop")
+    # status + message lines, then the key hints
     status = _status_text(state)
     if status:
-        draw_text(surf, fonts.tiny, status, (10, 128), theme.GOLD)
+        draw_text(surf, fonts.tiny, status, (8, HUD_ROW2_Y + HUD_ROW2_H + 4), theme.GOLD)
     line = overlay.get("message") or ""
     if line:
-        draw_text(surf, fonts.small, line, (w - 10, 126), (255, 255, 255), "topright")
-    draw_text(surf, fonts.tiny, "WASD move  Space wait  E attack  F rescue  X final attack", (10, HUD_H - 32), theme.DIM)
-    draw_text(surf, fonts.tiny, "1-4 abilities (3: click a cell)  Esc cancel", (10, HUD_H - 16), theme.DIM)
-
+        draw_text(surf, fonts.small, line, (w - 8, HUD_ROW2_Y + HUD_ROW2_H + 2), (255, 255, 255), "topright")
+    draw_text(surf, fonts.tiny, "WASD move  Space wait  E attack  F rescue  X final attack", (8, HUD_H - 30), theme.DIM)
+    draw_text(surf, fonts.tiny, "1 speed  2 teleport (then click a cell)  3 freeze  Esc cancel", (8, HUD_H - 16),
+              theme.DIM)
 
 # ---------------------------------------------------------------- AI side panel
 def _fit(font, text: str, width: int) -> str:
