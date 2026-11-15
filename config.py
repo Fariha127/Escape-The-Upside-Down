@@ -54,7 +54,7 @@ VECNA_EVAL_WEIGHTS = {           # Vecna's evaluation of a NON-terminal state (a
     "HP_LOST": 8,                # per HP Eleven has lost
     "PROXIMITY": 6,              # up to this much when Vecna stands next to Eleven
     "RESCUED": 2,                # subtracted per rescued friend (Eleven's progress)
-    "PORTAL_PROGRESS": 4,        # subtracted up to this much when the portal is open and Eleven is near it
+    "GATE_PROGRESS": 4,        # subtracted up to this much when the GATE is open and Eleven is near it
 }
 
 # --- Eleven (MCTS picks a strategic goal, A* walks to it) ---
@@ -69,7 +69,7 @@ EVADE_OPEN_WEIGHT = 3            # EVADE prefers open areas over dead ends: up t
 EVADE_RADIUS = 6                 # EVADE looks for a safe cell within this walking distance
 AI_TURN_DELAY_MS = 600           # AI-vs-AI: pause between turns at 1x speed
 AI_SPEEDS = (0.5, 1, 2, 4)       # AI-vs-AI speed multipliers
-PORTAL_TURN_MS = 140            # UI: open portal swirl moves one step every this many ms (needs ANIM_ENABLED)
+GATE_TURN_MS = 140            # UI: open GATE swirl moves one step every this many ms (needs ANIM_ENABLED)
 SPRITES_ENABLED = True          # UI: show pictures from assets/characters/ (letters for any missing file)
 ANIM_ENABLED = True              # UI: characters slide between cells, hits and kills flash
 ANIM_SLIDE_MS = 140              # length of one slide
@@ -114,13 +114,13 @@ MCTS_REWARD_SCALE = 50           # MCTS divides rewards by this so UCB1's consta
 RANDOM_BOARD_PER_GAME = True     # UI: every new game gets a board generated from its seed; False = the fixed default map
 DEMOGORGON_COUNT = 2             # normal Demogorgons on a generated board (cap: MAX_NORMAL_DEMOGORGONS); measured on 100 random boards: 2 -> ~47% wins, 3 -> ~33%, 4 -> ~22%, 6 -> ~13%
 BOARD_HAZARD_COUNT = 3           # hazard cells placed on a generated board
-BOARD_PORTAL_MIN_DIST = 20       # portal is at least this many steps from Eleven's start (default map: 25)
+BOARD_GATE_MIN_DIST = 20       # GATE is at least this many steps from Eleven's start (default map: 25)
 BOARD_FRIEND_MIN_DIST_ELEVEN = 8     # each friend at least this far from Eleven's start (default map: 9)
 BOARD_FRIEND_MIN_DIST_VECNA = 6      # ... and from Vecna's start
 BOARD_FRIEND_SPACING = 6         # friends at least this far from each other (default map: 7)
 BOARD_DEMOGORGON_MIN_DIST_ELEVEN = 6 # Demogorgons start at least this far from Eleven (default map: 6)
 BOARD_DEMOGORGON_SPACING = 4     # Demogorgons at least this far from each other (default map: 5)
-BOARD_DEMOGORGON_MIN_DIST_OBJECT = 3 # ... and from every friend and from the portal
+BOARD_DEMOGORGON_MIN_DIST_OBJECT = 3 # ... and from every friend and from the GATE
 BOARD_HAZARD_MIN_DIST_ELEVEN = 3     # hazards never start next to Eleven
 BOARD_HAZARD_MAX_DETOUR = 2      # walking around a hazard costs at most this many extra steps between any two objectives
                                  # (Eleven's A* detours when that is cheaper than ASTAR_HAZARD_COST)

@@ -52,7 +52,7 @@ def snap(s):
     return (s.eleven_pos, s.eleven_hp, s.eleven_power, s.turn, s.vecna.pos, s.vecna.frozen_turns,
             [(d.id, d.pos, d.alive, d.temporary, d.cooldown, d.frozen_turns) for d in s.demogorgons],
             set(s.rescued), dict(s.status_effects), dict(s.corrupted), len(s.event_log), s.winner,
-            s.portal_active, s.mind_flayer.active, s.mind_flayer.defeated, s.mind_flayer.spawn_cooldown)
+            s.gate_active, s.mind_flayer.active, s.mind_flayer.defeated, s.mind_flayer.spawn_cooldown)
 
 
 # ------------------------------------------------------------------ the character
@@ -82,7 +82,7 @@ def test_corrupt_restrictions():
     assert not can_corrupt(s, s.eleven_pos)                     # Eleven's cell
     assert not can_corrupt(s, s.vecna.pos)                      # Vecna's cell
     assert not can_corrupt(s, s.demogorgons[0].pos)             # a Demogorgon's cell
-    assert not can_corrupt(s, s.portal_pos)                     # never the portal
+    assert not can_corrupt(s, s.gate_pos)                     # never the gate
     assert not can_corrupt(s, (0, 0))                           # wall
     assert can_corrupt(s, (2, 1))
     assert apply_mf_action(s, MFAction(CORRUPT, (2, 1)))
@@ -217,9 +217,10 @@ def test_no_search_when_defeated_or_eleven_is_dead():
 def test_final_attack_defeats_it_and_it_stops_acting():
     s = awake()
     s.eleven_power = config.FINAL_POWER_REQUIREMENT
+    s.rescued.update(s.friend_positions)                            # the Gate also needs every friend rescued
     tm = TurnManager(s)
     assert tm.step(Action.FINAL_ATTACK)
-    assert s.mind_flayer.defeated and s.portal_active
+    assert s.mind_flayer.defeated and s.gate_active
     calls = tm.metrics.mcts.get("mind_flayer").calls if "mind_flayer" in tm.metrics.mcts else 0
     tm.step(Action.WAIT)
     tm.step(Action.WAIT)
@@ -240,10 +241,10 @@ def test_final_battle_end_to_end_win():
     assert s.winner == Winner.ELEVEN and s.game_over
 
 
-def test_the_portal_cannot_be_corrupted_so_the_win_cannot_be_walled_off():
+def test_the_gate_cannot_be_corrupted_so_the_win_cannot_be_walled_off():
     s = awake()
-    for cell in [(11, 13), (13, 13), s.portal_pos]:
-        assert (cell == s.portal_pos) != can_corrupt(s, cell) or cell != s.portal_pos
+    for cell in [(11, 13), (13, 13), s.gate_pos]:
+        assert (cell == s.gate_pos) != can_corrupt(s, cell) or cell != s.gate_pos
 
 
 # ------------------------------------------------------------------ model, route, candidates
@@ -258,7 +259,7 @@ def test_model_eleven_priorities():
     s3 = awake()
     s3.rescued.update(s3.friend_positions)
     s3.mind_flayer.defeated = True
-    s3.portal_active = False
+    s3.gate_active = False
     assert model_eleven_action(s3, make_plan(s3)) == Action.WAIT      # nothing left to aim at
 
 
@@ -436,7 +437,7 @@ def check_invariants(s):
     assert len(s.corrupted) <= config.MF_MAX_CORRUPTED
     assert sum(1 for d in s.demogorgons if d.alive and d.temporary) <= config.MAX_TEMP_CREATURES
     assert 0 <= s.eleven_hp <= config.MAX_HP and 0 <= s.eleven_power <= config.MAX_POWER
-    assert s.portal_pos not in s.corrupted and s.turn <= config.MAX_TURNS
+    assert s.gate_pos not in s.corrupted and s.turn <= config.MAX_TURNS
 
 
 @pytest.mark.parametrize("seed", [1, 2, 3])

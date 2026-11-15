@@ -32,7 +32,8 @@ class App:
         pygame.init()
         probe = GameSession().state
         self.size = game_screen.window_size(probe)
-        self.surface = pygame.display.set_mode(self.size)
+        self.fullscreen = False
+        self.surface = self._open_window(pygame.SCALED)   # SCALED: same layout at any screen size
         pygame.display.set_caption("Escape the Upside Down")
         self.fonts = theme.load_fonts()
         self.settings = Settings()
@@ -65,11 +66,25 @@ class App:
             self.mode = "game"
         elif target == "quit":
             self.running = False
+    def _open_window(self, flags: int) -> pygame.Surface:
+        """Open the window with `flags`; if this computer cannot scale the window, use a plain one instead."""
+        try:
+            return pygame.display.set_mode(self.size, flags)
+        except pygame.error:
+            return pygame.display.set_mode(self.size, flags & pygame.FULLSCREEN)
+
+    def toggle_fullscreen(self) -> None:
+        """Full screen on/off. The game keeps its size and is scaled to fit the screen (mouse clicks still land
+        on the right cell)."""
+        self.fullscreen = not self.fullscreen
+        self.surface = self._open_window(pygame.SCALED | (pygame.FULLSCREEN if self.fullscreen else 0))
 
     # ---------------------------------------------------------------- frame
     def handle(self, e: pygame.event.Event) -> None:
         if e.type == pygame.QUIT:
             self.running = False
+        elif e.type == pygame.KEYDOWN and (e.key == pygame.K_F11 or (e.key == pygame.K_RETURN and getattr(e, "mod", 0) & pygame.KMOD_ALT)):
+            self.toggle_fullscreen()
         elif e.type == pygame.MOUSEWHEEL and self.mode == "game":
             s = self.session                   # the wheel scrolls the event log when the mouse is over the panel
             if pygame.mouse.get_pos()[0] >= game_screen.board_width(s.state):

@@ -49,7 +49,7 @@ def snap(s):
     return (s.eleven_pos, s.eleven_hp, s.eleven_power, s.turn, s.vecna.pos, s.vecna.frozen_turns,
             [(d.id, d.pos, d.alive, d.cooldown, d.frozen_turns) for d in s.demogorgons], set(s.rescued),
             set(s.visited), dict(s.status_effects), dict(s.ability_uses), len(s.event_log), s.winner,
-            s.portal_active, s.mind_flayer.active, s.mind_flayer.defeated)
+            s.gate_active, s.mind_flayer.active, s.mind_flayer.defeated)
 
 
 # ------------------------------------------------------------------ goals
@@ -72,14 +72,14 @@ def test_hunt_needs_power_and_a_normal_demogorgon():
     assert Goal(Kind.HUNT) not in applicable_goals(s)
 
 
-def test_portal_goal_needs_open_portal_and_all_friends():
+def test_gate_goal_needs_open_gate_and_all_friends():
     s = fresh()
-    s.portal_active = True
-    assert Goal(Kind.PORTAL) not in applicable_goals(s)
+    s.gate_active = True
+    assert Goal(Kind.GATE) not in applicable_goals(s)
     rescue_all(s)
-    assert Goal(Kind.PORTAL) in applicable_goals(s)
-    s.portal_active = False
-    assert Goal(Kind.PORTAL) not in applicable_goals(s)
+    assert Goal(Kind.GATE) in applicable_goals(s)
+    s.gate_active = False
+    assert Goal(Kind.GATE) not in applicable_goals(s)
 
 
 def test_final_goal_needs_an_awake_mind_flayer_and_will():
@@ -221,7 +221,7 @@ def test_openness_is_a_fraction_and_dead_ends_are_less_open():
     b = GameState.new_game().board
     values = [openness(b, (x, y)) for y in range(b.height) for x in range(b.width) if b.is_walkable((x, y))]
     assert all(0.0 <= v <= 1.0 for v in values) and min(values) < max(values)
-    assert openness(b, (13, 13)) < openness(b, (3, 3))          # pocket beside the portal vs the start room
+    assert openness(b, (13, 13)) < openness(b, (3, 3))          # pocket beside the gate vs the start room
 
 
 def test_hit_zone_and_safe_step_cost():
@@ -253,7 +253,8 @@ def test_astar_with_danger_cost_avoids_the_hit_zone_when_it_can():
 
 def test_table_step_reaches_every_target_in_exactly_the_static_distance():
     s = fresh(freeze_vecna=True)
-    s.mind_flayer.defeated = True                  # the portal is only enterable once it is open
+    s.mind_flayer.defeated = True                  # the gate is only enterable once it is open
+    s.rescued.update(s.friend_positions)           # Mind Flayer defeated and every friend rescued
     rng = random.Random(9)
     cells = [(x, y) for y in range(15) for x in range(15)
              if s.board.is_walkable((x, y)) and (x, y) != s.vecna.pos]
@@ -429,15 +430,15 @@ def test_mcts_rescues_an_adjacent_friend_when_nothing_threatens(monkeypatch):
     assert mcts_search(s, 150, seed=1).goal == Goal(Kind.RESCUE, "Mike")
 
 
-def test_mcts_heads_for_the_portal_when_it_can_win():
+def test_mcts_heads_for_the_gate_when_it_can_win():
     s = fresh(freeze_vecna=True)
     rescue_all(s)
     s.mind_flayer.active = True
     s.mind_flayer.defeated = True
-    s.portal_active = True
+    s.gate_active = True
     s.eleven_pos = (10, 13)
     s.visited.add(s.eleven_pos)
-    assert mcts_search(s, 150, seed=1).goal == Goal(Kind.PORTAL)
+    assert mcts_search(s, 150, seed=1).goal == Goal(Kind.GATE)
 
 
 def test_mcts_uses_the_final_attack_when_available():

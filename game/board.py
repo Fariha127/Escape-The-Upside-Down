@@ -48,7 +48,7 @@ class Board:
         terrain = []
         self.eleven_start: Pos = (-1, -1)
         self.vecna_start: Pos = (-1, -1)
-        self.portal: Pos = (-1, -1)
+        self.gate: Pos = (-1, -1)
         self.friend_positions: Dict[str, Pos] = {}
         self.demogorgon_starts: List[Pos] = []
         for y, row in enumerate(lines):
@@ -57,7 +57,7 @@ class Board:
                 trow.append(_TERRAIN_CHARS.get(ch, Terrain.FLOOR))
                 if ch == "E": self.eleven_start = (x, y)
                 elif ch == "V": self.vecna_start = (x, y)
-                elif ch == "P": self.portal = (x, y)
+                elif ch == "P": self.gate = (x, y)
                 elif ch == "G": self.demogorgon_starts.append((x, y))
                 elif ch in FRIEND_CHARS: self.friend_positions[FRIEND_CHARS[ch]] = (x, y)
             terrain.append(tuple(trow))
@@ -97,12 +97,12 @@ class Board:
 
     def validate(self) -> None:
         """Raise ValueError unless the map is playable: all objectives reachable from Eleven."""
-        if self.eleven_start == (-1, -1) or self.portal == (-1, -1) or self.vecna_start == (-1, -1):
+        if self.eleven_start == (-1, -1) or self.gate == (-1, -1) or self.vecna_start == (-1, -1):
             raise ValueError("Map needs E, V and P markers")
         if set(self.friend_positions) != set(FRIEND_CHARS.values()):
             raise ValueError("Map needs all four friends (M, D, L, W)")
         reach = self.reachable_from(self.eleven_start)
-        targets = {"portal": self.portal, "vecna": self.vecna_start,
+        targets = {"gate": self.gate, "vecna": self.vecna_start,
                    **self.friend_positions,
                    **{f"demogorgon{i}": p for i, p in enumerate(self.demogorgon_starts)}}
         unreachable = [n for n, p in targets.items() if p not in reach]

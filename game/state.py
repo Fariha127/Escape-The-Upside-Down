@@ -44,8 +44,8 @@ class GameState:
     status_effects: Dict[str, int] = field(default_factory=dict)   # name -> turns remaining
     visited: Set[Pos] = field(default_factory=set)
     corrupted: Dict[Pos, int] = field(default_factory=dict)        # cell -> turns remaining
-    portal_pos: Pos = (-1, -1)
-    portal_active: bool = False
+    gate_pos: Pos = (-1, -1)
+    gate_active: bool = False
     turn: int = 0
     phase: Phase = Phase.ELEVEN
     winner: Winner = Winner.NONE
@@ -68,7 +68,7 @@ class GameState:
             mind_flayer=MindFlayer(),
             friend_positions=dict(board.friend_positions),
             visited={board.eleven_start},
-            portal_pos=board.portal,
+            gate_pos=board.gate,
             unlocked_abilities=set(config.ABILITY_USES),     # every ability is ready from the start
             ability_uses=dict(config.ABILITY_USES),
         )
@@ -91,8 +91,8 @@ class GameState:
             status_effects=dict(self.status_effects),
             visited=set(self.visited),
             corrupted=dict(self.corrupted),
-            portal_pos=self.portal_pos,
-            portal_active=self.portal_active,
+            gate_pos=self.gate_pos,
+            gate_active=self.gate_active,
             turn=self.turn,
             phase=self.phase,
             winner=self.winner,

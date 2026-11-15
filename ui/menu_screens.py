@@ -71,7 +71,7 @@ class MenuScreen(Screen):
     def draw(self, surf, fonts, mouse_pos=None):
         _backdrop(surf, fonts, TITLE)
         w = surf.get_width()
-        draw_text(surf, fonts.small, "Rescue Mike, Dustin, Lucas and Will, defeat the Mind Flayer, reach the portal.",
+        draw_text(surf, fonts.small, "Rescue Mike, Dustin, Lucas and Will, defeat the Mind Flayer, reach the gate.",
                   (w // 2, 112), theme.DIM, "center")
         draw_text(surf, fonts.small, "A game that shows AI search algorithms at work: A*, Minimax + Alpha-Beta, MCTS.",
                   (w // 2, 134), theme.DIM, "center")
@@ -113,7 +113,7 @@ class TextScreen(Screen):
 def howto_blocks():
     return [
         ("Goal", "Eleven must rescue all 4 friends, defeat the Mind Flayer with the final attack, and then stand on "
-                 f"the portal. She loses if her HP reaches 0 or after {config.MAX_TURNS} turns."),
+                 f"the gate. She loses if her HP reaches 0 or after {config.MAX_TURNS} turns."),
         ("Moving", "WASD or the arrow keys move one cell (never diagonally). Space waits. Walls, other characters "
                    "and cells corrupted by the Mind Flayer block you. Entering a hazard cell costs "
                    f"{config.HAZARD_DAMAGE} HP."),
@@ -126,7 +126,7 @@ def howto_blocks():
                       "turn, Teleport (2, then click a highlighted cell) jumps to a safe visited cell, Freeze (3) "
                       "stops every enemy for a few turns."),
         ("Final attack", f"X needs the Mind Flayer awake and at least {config.FINAL_POWER_REQUIREMENT} power. It "
-                         "defeats the Mind Flayer and opens the portal. Until then the portal cell is closed and "
+                         "defeats the Mind Flayer and opens the gate. Until then the gate cell is closed and "
                          "Eleven cannot step on it."),
         ("AI controls", "T switches AI vs AI on/off, N lets the AI play one turn, Space pauses, + and - change "
                         "speed, P shows A* paths and Vecna's last Minimax choice, R restarts, M returns to the menu."),
@@ -137,7 +137,7 @@ def algorithm_blocks():
     return [
         ("Eleven: MCTS + A*", f"MCTS ({config.ELEVEN_MCTS_SIMULATIONS} simulations, UCB1 constant "
                               f"{config.MCTS_EXPLORATION}) chooses a strategic goal: rescue a friend, hunt a "
-                              "Demogorgon, evade, go to the portal, prepare the final attack or use an ability. "
+                              "Demogorgon, evade, go to the gate, prepare the final attack or use an ability. "
                               "A* then walks the path to that goal."),
         ("Demogorgons: A*", "Each Demogorgon runs A* with a Manhattan-distance heuristic to chase Eleven and "
                             "re-plans when another character blocks its path."),

@@ -23,7 +23,7 @@ def test_move_hit_rescue_attack():
 
 
 def test_mind_flayer_defeat_and_game_end():
-    assert "portal" in sound.events_between(snap(), snap(mind_flayer_defeated=True))
+    assert "gate" in sound.events_between(snap(), snap(mind_flayer_defeated=True))
     assert sound.events_between(snap(), snap(game_over=True, eleven_won=True))[-1] == "win"
     assert sound.events_between(snap(), snap(game_over=True))[-1] == "lose"
 

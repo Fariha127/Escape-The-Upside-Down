@@ -85,8 +85,8 @@ def test_loss_on_zero_hp_and_turn_limit():
     assert tm.step(Action.WAIT) is False          # no turns after game over
 
 
-def test_portal_alone_is_not_victory():
-    s = GameState.new_game(); s.eleven_pos = s.portal_pos
+def test_gate_alone_is_not_victory():
+    s = GameState.new_game(); s.eleven_pos = s.gate_pos
     check_win_loss(s); assert s.winner == Winner.NONE
     s.rescued = set(s.friend_positions); s.mind_flayer.defeated = True
     check_win_loss(s); assert s.winner == Winner.ELEVEN

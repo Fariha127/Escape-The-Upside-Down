@@ -58,15 +58,15 @@ class Plan:
 
 
 def _signature(state: GameState) -> Tuple:
-    return (frozenset(state.corrupted), len(state.rescued), state.portal_active, state.mind_flayer.defeated)
+    return (frozenset(state.corrupted), len(state.rescued), state.gate_active, state.mind_flayer.defeated)
 
 
 def model_target(state: GameState) -> Optional[Pos]:
     friends = [p for n, p in state.friend_positions.items() if n not in state.rescued]
     if friends:
         return min(friends, key=lambda p: (walk_distance(state.board, state.eleven_pos, p), p))
-    if state.portal_active:
-        return state.portal_pos
+    if state.gate_active:
+        return state.gate_pos
     mf = state.mind_flayer
     if mf.active and not mf.defeated:
         d = nearest_demogorgon(state)
@@ -97,7 +97,7 @@ def make_plan(state: GameState) -> Plan:
 
 
 def ensure_plan(state: GameState, plan: Plan) -> Plan:
-    """Reuse a plan while corruption, rescues and the portal are unchanged (distances depend only on those)."""
+    """Reuse a plan while corruption, rescues and the gate are unchanged (distances depend only on those)."""
     return plan if plan.sig == _signature(state) else make_plan(state)
 
 
@@ -109,7 +109,7 @@ def model_eleven_action(state: GameState, plan: Plan) -> Action:
     if plan.target is None:
         return Action.WAIT
     unrescued = len(state.rescued) < len(state.friend_positions)
-    if not unrescued and not state.portal_active and can_attack(state):
+    if not unrescued and not state.gate_active and can_attack(state):
         return Action.ATTACK
     here = plan.dist.get(state.eleven_pos)
     if here is None:

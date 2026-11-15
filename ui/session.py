@@ -233,8 +233,8 @@ class GameSession:
                 self.pending_first_move, self.message = action, "Speed: pick the second move (Space = skip)"             
             elif self.human_step(action):
                 self.message = ""
-            elif action in MOVE_DELTAS and rules.portal_closed_to_eleven(s, rules.move_target(s, action)):
-                self.message = "The portal is closed - defeat the Mind Flayer first"
+            elif action in MOVE_DELTAS and rules.gate_closed_to_eleven(s, rules.move_target(s, action)):
+                self.message = "The gate is closed - defeat the Mind Flayer first"
             # other illegal moves are ignored
 
     # ------------------------------------------------------------------ what the renderer shows

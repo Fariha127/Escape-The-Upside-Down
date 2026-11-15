@@ -204,7 +204,7 @@ def test_terminal_values_are_exactly_plus_minus_fifty():
     s2, _ = fresh()
     s2.rescued.update(s2.friend_positions)
     s2.mind_flayer.defeated = True
-    s2.eleven_pos = s2.portal_pos
+    s2.eleven_pos = s2.gate_pos
     assert terminal_value(s2) == -50
 
 
@@ -214,7 +214,7 @@ def test_non_terminal_evaluation_stays_within_49():
         s = random_state(rng)
         if rng.random() < 0.5:
             s.rescued = set(rng.sample(sorted(s.friend_positions), rng.randint(0, 4)))
-        s.portal_active = rng.random() < 0.5
+        s.gate_active = rng.random() < 0.5
         if terminal_value(s) is None:
             assert abs(evaluate_for_vecna(s)) <= NON_TERMINAL_LIMIT == 49
 
@@ -229,10 +229,10 @@ def test_evaluation_prefers_what_a_vecna_would_want():
     assert evaluate_for_vecna(close) > base                      # Vecna nearer Eleven
     helped = s.clone(); helped.rescued.add("Dustin")
     assert evaluate_for_vecna(helped) < base                     # Eleven made progress
-    near_portal = s.clone(); near_portal.portal_active = True
-    far = evaluate_for_vecna(near_portal)
-    near_portal.eleven_pos = (11, 13)
-    assert evaluate_for_vecna(near_portal) < far                 # open portal within reach is bad for Vecna
+    near_gate = s.clone(); near_gate.gate_active = True
+    far = evaluate_for_vecna(near_gate)
+    near_gate.eleven_pos = (11, 13)
+    assert evaluate_for_vecna(near_gate) < far                 # open gate within reach is bad for Vecna
 
 
 def test_distance_table_matches_astar_and_is_symmetric():

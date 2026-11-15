@@ -91,10 +91,10 @@ def _try_place(rng: random.Random, count: int) -> Optional[Dict[str, object]]:
         rng.shuffle(options)                         # `also` is the slow check: try cells in random order
         return next((c for c in options if also(c)), None)
 
-    portal = pick(lambda c: d[eleven][c] >= config.BOARD_PORTAL_MIN_DIST)
-    if portal is None:
+    gate = pick(lambda c: d[eleven][c] >= config.BOARD_GATE_MIN_DIST)
+    if gate is None:
         return None
-    used.add(portal)
+    used.add(gate)
     friends: Dict[str, Pos] = {}
     for name in FRIEND_CHARS.values():
         p = pick(lambda c: d[eleven][c] >= config.BOARD_FRIEND_MIN_DIST_ELEVEN
@@ -104,7 +104,7 @@ def _try_place(rng: random.Random, count: int) -> Optional[Dict[str, object]]:
             return None
         friends[name] = p
         used.add(p)
-    objects = list(friends.values()) + [portal]
+    objects = list(friends.values()) + [gate]
     demogorgons: List[Pos] = []
     for _ in range(count):
         p = pick(lambda c: d[eleven][c] >= config.BOARD_DEMOGORGON_MIN_DIST_ELEVEN
@@ -122,9 +122,9 @@ def _try_place(rng: random.Random, count: int) -> Optional[Dict[str, object]]:
             return None
         hazards.append(p)
         used.add(p)
-    if not _detour_ok(portal, [eleven, vecna] + list(friends.values())):   # the closed portal must not block a route
+    if not _detour_ok(gate, [eleven, vecna] + list(friends.values())):   # the closed portal must not block a route
         return None
-    return {"portal": portal, "friends": friends, "demogorgons": demogorgons, "hazards": hazards}
+    return {"gate": gate, "friends": friends, "demogorgons": demogorgons, "hazards": hazards}
 
 
 def generate_board(seed: int, demogorgons: Optional[int] = None) -> Board:
@@ -141,7 +141,7 @@ def generate_board(seed: int, demogorgons: Optional[int] = None) -> Board:
         starts = _fixed_starts()
         for key, (x, y) in starts.items():
             rows[y][x] = key
-        rows[plan["portal"][1]][plan["portal"][0]] = "P"
+        rows[plan["gate"][1]][plan["gate"][0]] = "P"
         for name, (x, y) in plan["friends"].items():
             rows[y][x] = _FRIEND_CHAR[name]
         for x, y in plan["demogorgons"]:

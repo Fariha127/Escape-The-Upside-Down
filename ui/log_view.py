@@ -17,8 +17,8 @@ class LogEntry:
 
 def classify(text: str) -> str:
     """Category of one log message, used only to pick its colour."""
-    if "escaped through the portal" in text or "Mind Flayer is defeated" in text:
-        return "win"
+    if "escaped through the" in text or "Mind Flayer is defeated" in text or "Gate opens" in text:
+        return "win" 
     if "has fallen" in text or "Turn limit reached" in text:
         return "loss"
     if text.startswith("Eleven takes"):

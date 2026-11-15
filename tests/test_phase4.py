@@ -303,9 +303,10 @@ def test_final_attack_requirements_and_effect():
     s.eleven_power = config.FINAL_POWER_REQUIREMENT - 1
     assert Action.FINAL_ATTACK not in legal_eleven_actions(s)
     s.eleven_power = config.FINAL_POWER_REQUIREMENT
+    s.rescued.update(s.friend_positions)                            # the Gate also needs every friend rescued
     assert Action.FINAL_ATTACK in legal_eleven_actions(s)
     assert tm.step(Action.FINAL_ATTACK)
-    assert s.mind_flayer.defeated and s.portal_active
+    assert s.mind_flayer.defeated and s.gate_active
     assert s.eleven_power == 0
 
 
@@ -320,8 +321,8 @@ def test_win_needs_all_conditions():
     s, tm = fresh()
     s.eleven_pos = (11, 13)
     s.visited.add((11, 13))
-    tm.step(Action.MOVE_RIGHT)                     # the portal is closed until the Mind Flayer is defeated
-    assert s.eleven_pos != s.portal_pos and s.winner == Winner.NONE
+    tm.step(Action.MOVE_RIGHT)                     # the gate is closed until the Mind Flayer is defeated
+    assert s.eleven_pos != s.gate_pos and s.winner == Winner.NONE
 
 
 def test_win_when_all_conditions_met():

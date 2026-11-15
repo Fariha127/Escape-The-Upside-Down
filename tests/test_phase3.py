@@ -84,15 +84,15 @@ def test_astar_is_optimal_vs_bfs_on_default_map():
 
 def test_nodes_explored_never_exceeds_reachable_cells_and_stats_populated():
     b = Board.default()
-    r = astar_search(b, b.eleven_start, b.portal)
+    r = astar_search(b, b.eleven_start, b.gate)
     assert 0 < r.nodes_explored <= len(b.reachable_from(b.eleven_start))
-    assert r.time_ms >= 0 and r.goal == b.portal and r.start == b.eleven_start
+    assert r.time_ms >= 0 and r.goal == b.gate and r.start == b.eleven_start
 
 
 def test_heuristic_prunes_search_compared_to_zero_heuristic():
     b = Board.default()
-    informed = astar_search(b, b.eleven_start, b.portal)
-    dijkstra = astar_search(b, b.eleven_start, b.portal, heuristic=lambda a, c: 0)
+    informed = astar_search(b, b.eleven_start, b.gate)
+    dijkstra = astar_search(b, b.eleven_start, b.gate, heuristic=lambda a, c: 0)
     assert informed.cost == dijkstra.cost and informed.nodes_explored <= dijkstra.nodes_explored
 
 
@@ -247,5 +247,5 @@ def test_navigator_walks_the_shortest_path_to_target():
 
 def test_navigator_waits_when_unreachable():
     s = GameState.new_game(); s.corrupted[(2, 1)] = 5; s.corrupted[(1, 2)] = 5
-    action, res = Navigator().next_action(s, s.portal_pos)
+    action, res = Navigator().next_action(s, s.gate_pos)
     assert action == Action.WAIT and not res.found

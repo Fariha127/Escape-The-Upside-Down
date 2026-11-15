@@ -33,4 +33,6 @@ def rescue_friend(state: "GameState", friend: str) -> bool:
     state.log(f"Rescued {friend}")
     if friend == "Will":
         mind_flayer.activate(state)
+    from game.rules import refresh_gate
+    refresh_gate(state)                 # the last friend may be what opens the Gate
     return True

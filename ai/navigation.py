@@ -21,7 +21,7 @@ class Navigator:
     def next_action(self, state, target: Pos, step_cost=None) -> Tuple[Action, AStarResult]:
         """One step toward `target`. Returns (WAIT, result) when already there or unreachable.
         step_cost: optional cost function (>= 1); the default makes hazard cells costlier."""
-        closed = [] if state.mind_flayer.defeated else [state.portal_pos]   # Eleven cannot walk through it yet
+        closed = [] if state.mind_flayer.defeated else [state.gate_pos]   # Eleven cannot walk through it yet
         result = find_path(state, state.eleven_pos, target, step_cost=step_cost or hazard_aware_cost(state.board),
                            extra_blocked=closed)
         self.metrics.record_astar(ROLE, result)

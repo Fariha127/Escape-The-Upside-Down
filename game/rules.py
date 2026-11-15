@@ -22,15 +22,27 @@ def move_target(state: GameState, action: Action) -> Pos:
     return (state.eleven_pos[0] + dx, state.eleven_pos[1] + dy)
 
 
-def portal_closed_to_eleven(state: GameState, p: Pos) -> bool:
-    """The portal cell cannot be entered by Eleven until the Mind Flayer is defeated."""
-    return p == state.portal_pos and not state.mind_flayer.defeated
+def gate_is_open(state: GameState) -> bool:
+    """The Gate (the exit gate) is open once the Mind Flayer is defeated AND every friend is rescued."""
+    return state.mind_flayer.defeated and len(state.rescued) == len(state.friend_positions)
+
+
+def refresh_gate(state: GameState) -> None:
+    """Open the Gate (state.gate_active) as soon as its two conditions are both true."""
+    if gate_is_open(state) and not state.gate_active:
+        state.gate_active = True
+        state.log("The Gate opens!")
+
+
+def gate_closed_to_eleven(state: GameState, p: Pos) -> bool:
+    """The Gate cell cannot be entered by Eleven until the Gate is open."""
+    return p == state.gate_pos and not gate_is_open(state)
 
 
 def can_eleven_enter(state: GameState, p: Pos) -> bool:
-    """Walls, map edges, corrupted cells, enemies and the still-closed portal are not enterable."""
+    """Walls, map edges, corrupted cells, enemies and the still-closed gate are not enterable."""
     return (not state.is_blocked(p) and p not in state.enemy_positions()
-            and not portal_closed_to_eleven(state, p))
+            and not gate_closed_to_eleven(state, p))
 
 
 def can_enemy_enter(state: GameState, p: Pos) -> bool:
@@ -154,7 +166,7 @@ def is_eleven_trapped(state: GameState) -> bool:
 
 
 def check_win_loss(state: GameState) -> None:
-    """Win needs ALL conditions (reaching the portal alone is not enough).
+    """Win needs ALL conditions (reaching the gate alone is not enough).
     Loss: HP<=0, trapped for STUCK_TURNS_LIMIT turns in a row, or the turn cap."""
     from game.state import Winner
     if state.game_over:
@@ -164,9 +176,9 @@ def check_win_loss(state: GameState) -> None:
         state.log("Eleven has fallen.")
         return
     all_friends = len(state.rescued) == len(state.friend_positions)
-    if all_friends and state.mind_flayer.defeated and state.eleven_pos == state.portal_pos:
+    if all_friends and state.mind_flayer.defeated and state.eleven_pos == state.gate_pos:
         state.winner = Winner.ELEVEN
-        state.log("Eleven escaped through the portal!")
+        state.log("Eleven escaped through the Gate!")
         return
     state.stuck_turns = state.stuck_turns + 1 if is_eleven_trapped(state) else 0
     if state.stuck_turns >= config.STUCK_TURNS_LIMIT:

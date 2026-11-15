@@ -17,7 +17,7 @@ TONES: Dict[str, List[Tuple[int, float]]] = {
     "rescue": [(523, 0.08), (659, 0.08), (784, 0.12)],
     "hit": [(180, 0.10), (120, 0.14)],
     "mind_flayer": [(400, 0.10), (300, 0.10), (200, 0.10), (100, 0.20)],
-    "portal": [(392, 0.10), (523, 0.10), (659, 0.10), (784, 0.20)],
+    "gate": [(392, 0.10), (523, 0.10), (659, 0.10), (784, 0.20)],
     "win": [(523, 0.12), (659, 0.12), (784, 0.12), (1047, 0.30)],
     "lose": [(392, 0.20), (330, 0.20), (262, 0.20), (196, 0.40)],
 }
@@ -57,7 +57,7 @@ def events_between(a: Snapshot, b: Snapshot) -> List[str]:
     if b.mind_flayer_awake and not a.mind_flayer_awake:
         out.append("mind_flayer")
     if b.mind_flayer_defeated and not a.mind_flayer_defeated:
-        out.append("portal")
+        out.append("gate")
     if b.game_over and not a.game_over:
         out.append("win" if b.eleven_won else "lose")
     return out

@@ -69,10 +69,11 @@ def test_final_attack_requirements():
     s.eleven_pos = (12, 11); friends.rescue_friend(s, "Will")
     s.eleven_power = config.FINAL_POWER_REQUIREMENT - 1
     assert not mind_flayer.can_final_attack(s) and mind_flayer.final_attack(s) is False
-    assert not s.mind_flayer.defeated and not s.portal_active
+    assert not s.mind_flayer.defeated and not s.gate_active
     s.eleven_power = config.FINAL_POWER_REQUIREMENT + 1
+    s.rescued.update(s.friend_positions)                            # the Gate also needs every friend rescued
     assert mind_flayer.final_attack(s)
-    assert s.mind_flayer.defeated and s.portal_active and s.eleven_power == 1
+    assert s.mind_flayer.defeated and s.gate_active and s.eleven_power == 1
 
 
 def test_cannot_fight_mind_flayer_without_will_even_if_active():

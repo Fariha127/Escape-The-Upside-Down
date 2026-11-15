@@ -120,8 +120,8 @@ def objective_distance(state: GameState) -> Optional[int]:
     """Walking distance to Eleven's current main objective: the nearest unrescued friend, else the
     portal once it is open. None when there is nothing to walk to."""
     targets = [p for n, p in state.friend_positions.items() if n not in state.rescued]
-    if not targets and state.portal_active:
-        targets = [state.portal_pos]
+    if not targets and state.gate_active:
+        targets = [state.gate_pos]
     if not targets:
         return None
     d = min(walk_distance(state.board, state.eleven_pos, t) for t in targets)

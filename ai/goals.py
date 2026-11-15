@@ -30,7 +30,7 @@ class Kind(Enum):
     RESCUE = "RESCUE"
     HUNT = "HUNT"
     EVADE = "EVADE"
-    PORTAL = "PORTAL"
+    GATE = "GATE"
     FINAL = "FINAL"
     ABILITY = "USE"
 
@@ -78,8 +78,8 @@ def applicable_goals(state) -> List[Goal]:
     if state.eleven_power >= config.DEMOGORGON_ATTACK_COST and normal_demogorgons(state):
         goals.append(Goal(Kind.HUNT))
     goals.append(Goal(Kind.EVADE))
-    if state.portal_active and len(state.rescued) == len(state.friend_positions):
-        goals.append(Goal(Kind.PORTAL))
+    if state.gate_active and len(state.rescued) == len(state.friend_positions):
+        goals.append(Goal(Kind.GATE))
     if mf_rules.can_final_attack(state) or (
             state.mind_flayer.active and not state.mind_flayer.defeated and "Will" in state.rescued
             and state.eleven_power < config.FINAL_POWER_REQUIREMENT
@@ -165,7 +165,7 @@ class GoalRun:
             return state.mind_flayer.defeated
         if k == Kind.ABILITY:
             return self.used
-        return False                                   # PORTAL: ends when the game does
+        return False                                   # GATE: ends when the game does
 
     # ---- one concrete action ----
     def next_action(self, state, step_fn: StepFn) -> Optional[Tuple[Action, Optional[Pos]]]:
@@ -191,8 +191,8 @@ class GoalRun:
             return self._walk(state, step_fn, target.pos)
         if k == Kind.EVADE:
             return self._walk(state, step_fn, self.cell)
-        if k == Kind.PORTAL:
-            return self._walk(state, step_fn, state.portal_pos)
+        if k == Kind.GATE:
+            return self._walk(state, step_fn, state.gate_pos)
         if k == Kind.ABILITY:
             action = _ABILITY_ACTION[arg]
             if action not in legal_eleven_actions(state):

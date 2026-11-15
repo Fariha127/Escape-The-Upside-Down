@@ -43,12 +43,16 @@ def can_final_attack(state: "GameState") -> bool:
 
 
 def final_attack(state: "GameState") -> bool:
-    """Eleven's final psychic attack: defeats the Mind Flayer and unlocks the portal."""
+    """Eleven's final psychic attack: defeats the Mind Flayer and unlocks the gate."""
     if not can_final_attack(state):
         return False
     if config.FINAL_ATTACK_CONSUMES_POWER:
         state.eleven_power -= config.FINAL_POWER_REQUIREMENT
     state.mind_flayer.defeated = True
-    state.portal_active = True
-    state.log("The Mind Flayer is defeated! The portal opens.")
+    from game.rules import gate_is_open, refresh_gate   # local import: avoids a circular import at load time
+    if gate_is_open(state):
+        state.log("The Mind Flayer is defeated!")
+        refresh_gate(state)
+    else:
+        state.log("The Mind Flayer is defeated! Rescue the remaining friends to open the Gate.")
     return True

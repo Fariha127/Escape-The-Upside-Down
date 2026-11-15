@@ -44,7 +44,7 @@ def can_corrupt(state: GameState, cell: Pos) -> bool:
     return (is_acting(state) and state.board.is_walkable(cell) and cell not in state.corrupted
             and len(state.corrupted) < config.MF_MAX_CORRUPTED
             and cell != state.eleven_pos and cell not in state.enemy_positions()
-            and cell != state.portal_pos)
+            and cell != state.gate_pos)
 
 
 def can_spawn(state: GameState, cell: Pos) -> bool:

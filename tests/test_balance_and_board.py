@@ -129,9 +129,9 @@ def wd(b, a, c):
 
 def test_same_seed_gives_the_same_board_and_other_seeds_differ():
     a, b = generate_board(5), generate_board(5)
-    assert (a.terrain, a.portal, a.friend_positions, a.demogorgon_starts) == \
-           (b.terrain, b.portal, b.friend_positions, b.demogorgon_starts)
-    assert any(generate_board(s).portal != a.portal or generate_board(s).demogorgon_starts != a.demogorgon_starts
+    assert (a.terrain, a.gate, a.friend_positions, a.demogorgon_starts) == \
+           (b.terrain, b.gate, b.friend_positions, b.demogorgon_starts)
+    assert any(generate_board(s).gate != a.gate or generate_board(s).demogorgon_starts != a.demogorgon_starts
                for s in range(6, 12))
 
 
@@ -160,16 +160,16 @@ def test_placements_follow_the_distance_rules_and_never_overlap():
         e, v = b.eleven_start, b.vecna_start
         friends = list(b.friend_positions.values())
         gs = b.demogorgon_starts
-        cells = [e, v, b.portal] + friends + gs
+        cells = [e, v, b.gate] + friends + gs
         assert len(set(cells)) == len(cells)                           # nothing shares a cell
-        assert wd(b, e, b.portal) >= config.BOARD_PORTAL_MIN_DIST
+        assert wd(b, e, b.gate) >= config.BOARD_GATE_MIN_DIST
         for f in friends:
             assert wd(b, e, f) >= config.BOARD_FRIEND_MIN_DIST_ELEVEN and wd(b, v, f) >= config.BOARD_FRIEND_MIN_DIST_VECNA
             assert all(wd(b, f, o) >= config.BOARD_FRIEND_SPACING for o in friends if o != f)
         for g in gs:
             assert wd(b, e, g) >= config.BOARD_DEMOGORGON_MIN_DIST_ELEVEN
             assert all(wd(b, g, o) >= config.BOARD_DEMOGORGON_SPACING for o in gs if o != g)
-            assert all(wd(b, g, o) >= config.BOARD_DEMOGORGON_MIN_DIST_OBJECT for o in friends + [b.portal])
+            assert all(wd(b, g, o) >= config.BOARD_DEMOGORGON_MIN_DIST_OBJECT for o in friends + [b.gate])
         for y in range(b.height):
             for x in range(b.width):
                 if b.terrain_at((x, y)) == Terrain.HAZARD:
@@ -196,7 +196,7 @@ def test_session_uses_the_generated_board_for_its_seed(monkeypatch):
     monkeypatch.setattr(config, "RANDOM_BOARD_PER_GAME", True)
     s = GameSession()
     b = generate_board(s.seed)
-    assert s.state.board.demogorgon_starts == b.demogorgon_starts and s.state.portal_pos == b.portal
+    assert s.state.board.demogorgon_starts == b.demogorgon_starts and s.state.gate_pos == b.gate
     monkeypatch.setattr(config, "RANDOM_BOARD_PER_GAME", False)
     s.restart()
     assert s.state.board.demogorgon_starts == Board.default().demogorgon_starts
@@ -214,7 +214,7 @@ def test_a_full_ai_game_runs_on_generated_boards():
 
 def test_hazards_can_always_be_walked_around_cheaply():
     """Walling off any hazard cell adds at most BOARD_HAZARD_MAX_DETOUR steps between Eleven, Vecna, the friends
-    and the portal (checked with a separate BFS, not the generator's own helper)."""
+    and the gate (checked with a separate BFS, not the generator's own helper)."""
     from collections import deque
 
     def bfs(b, start, blocked):
@@ -229,7 +229,7 @@ def test_hazards_can_always_be_walked_around_cheaply():
 
     for s in range(60):
         b = generate_board(s)
-        nodes = [b.eleven_start, b.vecna_start, b.portal] + list(b.friend_positions.values())
+        nodes = [b.eleven_start, b.vecna_start, b.gate] + list(b.friend_positions.values())
         for y in range(b.height):
             for x in range(b.width):
                 if b.terrain_at((x, y)) != Terrain.HAZARD:

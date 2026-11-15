@@ -17,7 +17,7 @@ def terminal_value(state) -> Optional[float]:
     if state.eleven_hp <= 0:
         return float(-config.UTILITY_LOSS)                 # Eleven's loss is Vecna's win
     if (len(state.rescued) == len(state.friend_positions) and state.mind_flayer.defeated
-            and state.eleven_pos == state.portal_pos):
+            and state.eleven_pos == state.gate_pos):
         return float(-config.UTILITY_WIN)
     return None
 
@@ -34,11 +34,11 @@ def evaluate_for_vecna(state) -> float:
          + HP_LOST   per HP Eleven has lost
          + PROXIMITY scaled by how close Vecna is to Eleven (walking distance)
          - RESCUED   per rescued friend
-         - PORTAL_PROGRESS scaled by how close Eleven is to the OPEN portal."""
+         - GATE_PROGRESS scaled by how close Eleven is to the OPEN gate."""
     w = config.VECNA_EVAL_WEIGHTS
     score = w["HP_LOST"] * (config.MAX_HP - state.eleven_hp)
     score += w["PROXIMITY"] * _closeness(walk_distance(state.board, state.vecna.pos, state.eleven_pos))
     score -= w["RESCUED"] * len(state.rescued)
-    if state.portal_active:
-        score -= w["PORTAL_PROGRESS"] * _closeness(walk_distance(state.board, state.eleven_pos, state.portal_pos))
+    if state.gate_active:
+        score -= w["GATE_PROGRESS"] * _closeness(walk_distance(state.board, state.eleven_pos, state.gate_pos))
     return max(-NON_TERMINAL_LIMIT, min(NON_TERMINAL_LIMIT, float(score)))

@@ -54,7 +54,7 @@ def test_switch_turns_pictures_off(tmp_path, monkeypatch):
 
 def test_board_draws_with_and_without_pictures(tmp_path, monkeypatch):
     monkeypatch.setattr(sprites, "ASSET_DIR", tmp_path)
-    for name in ("eleven", "vecna", "demogorgon", "mike", "dustin", "lucas", "will", "portal"):
+    for name in ("eleven", "vecna", "demogorgon", "mike", "dustin", "lucas", "will", "gate"):
         make_png(tmp_path / f"{name}.png")
     pygame.font.init()
     session = GameSession(ai_mode=True)

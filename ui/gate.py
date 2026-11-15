@@ -1,4 +1,4 @@
-"""The portal, drawn in code (no picture file needed). Drawing only.
+"""The gate, drawn in code (no picture file needed). Drawing only.
 
 Closed: a dark stone ring with cracks and a dim, still centre. Open: a glowing ring with a swirling bright
 centre that turns slowly. Both are drawn at high resolution and scaled down so the edges are smooth."""
@@ -15,7 +15,7 @@ from ui.theme import CELL
 SS = 4                                  # draw this many times bigger, then scale down
 SWIRL_ARMS = 3
 SWIRL_STEPS = 26
-FRAMES = 16                             # open portal: number of turning positions kept in the cache
+FRAMES = 16                             # open gate: number of turning positions kept in the cache
 CLOSED_STONE = (70, 74, 86)
 CLOSED_CRACK = (28, 30, 38)
 CLOSED_CENTRE = (18, 28, 44)
@@ -63,8 +63,8 @@ def _open(size: int, phase: float) -> pygame.Surface:
 
 
 def draw(surf: pygame.Surface, centre: Tuple[float, float], open_: bool, now_ms: int = 0) -> None:
-    """Draw the portal on the cell centred at `centre`."""
-    frame = int(now_ms / config.PORTAL_TURN_MS) % FRAMES if open_ and config.ANIM_ENABLED else 0
+    """Draw the gate on the cell centred at `centre`."""
+    frame = int(now_ms / config.GATE_TURN_MS) % FRAMES if open_ and config.ANIM_ENABLED else 0
     key = (open_, frame)
     if key not in _cache:
         big = _open(CELL * SS, 2 * math.pi * frame / FRAMES) if open_ else _closed(CELL * SS)

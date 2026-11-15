@@ -2,7 +2,7 @@
 
 If assets/characters/<name>.png exists, the board shows that picture (scaled to one cell, standing on a soft
 shadow). If a file is missing, the old letter marker is used for that character, so the game always works.
-Names: eleven, vecna, demogorgon, mike, dustin, lucas, will, portal. A Mind Flayer creature reuses
+Names: eleven, vecna, demogorgon, mike, dustin, lucas, will, gate. A Mind Flayer creature reuses
 demogorgon with a purple tint."""
 from __future__ import annotations
 from pathlib import Path
