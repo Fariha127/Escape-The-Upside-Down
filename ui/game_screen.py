@@ -13,7 +13,7 @@ from game.actions import Action
 from game.board import Terrain
 from game.state import GameState, Winner
 from ui import portal, sprites, theme
-from ui.icons import draw_ability_icon, draw_portrait
+from ui.icons import draw_ability_icon, draw_mind_flayer_card, draw_mind_flayer_looming, draw_portrait
 from ui.log_view import visible_entries
 from ui.stats_view import stats_sections
 from ui.theme import CARD_HEADER_H, CELL, HUD_H, LINE_H, PANEL_W
@@ -112,7 +112,8 @@ def log_capacity(state: GameState, window_h: int) -> int:
     """How many event log lines fit in the log card."""
     rect = panel_layout(state, window_h)[1]
     return max(1, (rect.height - CARD_HEADER_H - 4) // LINE_H)
-
+MF_CARD_W, MF_CARD_H = 90, 40       # size of the Mind Flayer picture tile in the HUD
+MF_CARD_X = 424                      # its left edge: right next to the three ability icons
 LIGHT_LETTER_BELOW = 90      # markers darker than this (brightness 0-255) get a white letter instead of black
 
 
@@ -159,6 +160,8 @@ def draw_board(surf: pygame.Surface, state: GameState, fonts: theme.Fonts, overl
             r = pygame.Rect(x * CELL, y * CELL + HUD_H, CELL, CELL)
             pygame.draw.rect(surf, COLORS[b.terrain_at((x, y))], r)
             pygame.draw.rect(surf, theme.GRID_LINE, r, 1)
+    if state.mind_flayer.active and not state.mind_flayer.defeated:     # awake: it looms over the board
+        draw_mind_flayer_looming(surf, pygame.Rect(0, HUD_H, board_width(state), b.height * CELL))
     for c in state.corrupted:
         pygame.draw.rect(surf, (120, 0, 120), (c[0] * CELL + 3, c[1] * CELL + HUD_H + 3, CELL - 6, CELL - 6), 2)
     for cell in overlay.get("teleport_cells", []):
@@ -234,6 +237,10 @@ def draw_hud(surf: pygame.Surface, state: GameState, fonts: theme.Fonts, overlay
         label = f"[{hotkey}] x{uses}" if unlocked else f"[{hotkey}] locked"
         draw_text(surf, fonts.tiny, label, (rect.centerx, rect.bottom + 3), theme.TEXT if unlocked else theme.DIM,
                   "midtop")
+    # Mind Flayer picture (white tile, faded until it wakes up)
+    draw_mind_flayer_card(surf, pygame.Rect(MF_CARD_X, 56, MF_CARD_W, MF_CARD_H), state.mind_flayer.active,
+                          state.mind_flayer.defeated)
+
     # status lines
     status = _status_text(state)
     if status:

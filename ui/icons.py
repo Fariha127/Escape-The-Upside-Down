@@ -1,10 +1,24 @@
 """Friend portraits and ability icons, friend pictures (from assets) and ability icons drawn in code."""
 from __future__ import annotations
+from typing import Dict, Optional, Tuple
 
 import pygame
 
 import config
 from ui import emoji, sprites, theme
+
+MF_TILE_BG = (255, 255, 255)             # white, so the dark Mind Flayer picture can be seen
+MF_ASLEEP_ALPHA = 130                    # the picture is faded while the Mind Flayer is still asleep
+MF_DEFEATED_ALPHA = 70
+MF_PAD = 4
+MF_LOOM_ALPHA = 85                       # how strongly the looming Mind Flayer shows over the board (0-255)
+MF_LOOM_TINT = (190, 30, 60)             # added to the dark picture so it glows red on the dark board
+MF_LOOM_WIDTH = 0.9                      # picture width as a share of the board width
+MF_LOOM_DROP = 60                        # how far below the top of the board the picture starts (pixels)
+MF_BORDER_ALPHA = 150
+MF_BORDER_W = 5
+_loom_cache: Dict[Tuple[int, int], Optional[pygame.Surface]] = {}
+_mf_cache: Dict[Tuple[int, int], Optional[pygame.Surface]] = {}
 
 UNRESCUED_SHADE = (60, 60, 85)           # multiplied into a friend's picture until they are rescued
 
@@ -42,3 +56,61 @@ def draw_ability_icon(surf: pygame.Surface, rect: pygame.Rect, ability: str, unl
     pygame.draw.rect(surf, edge, rect, 2 if active else 1, border_radius=6)
     if not unlocked:                      # locked: small cross-out
         pygame.draw.line(surf, (90, 60, 70), rect.topleft, rect.bottomright, 2)
+
+
+
+
+def draw_mind_flayer_card(surf: pygame.Surface, rect: pygame.Rect, awake: bool, defeated: bool) -> None:
+    """The Mind Flayer's picture on a white tile (it has no board cell). Faded while asleep or defeated,
+    full colour with a red border while awake. Does nothing if assets/characters/mind_flayer.png is missing."""
+    key = (rect.width, rect.height)
+    if key not in _mf_cache:
+        _mf_cache[key] = None
+        path = sprites.ASSET_DIR / "mind_flayer.png"
+        if path.is_file():
+            try:
+                src = pygame.image.load(str(path)).convert_alpha()
+                k = min((rect.width - 2 * MF_PAD) / src.get_width(), (rect.height - 2 * MF_PAD) / src.get_height())
+                _mf_cache[key] = pygame.transform.smoothscale(
+                    src, (max(1, int(src.get_width() * k)), max(1, int(src.get_height() * k))))
+            except (pygame.error, OSError):
+                pass
+    pic = _mf_cache[key]
+    if pic is None or not config.SPRITES_ENABLED:
+        return
+    pygame.draw.rect(surf, MF_TILE_BG, rect, border_radius=6)
+    shown = pic.copy()
+    if defeated:
+        shown.set_alpha(MF_DEFEATED_ALPHA)
+    elif not awake:
+        shown.set_alpha(MF_ASLEEP_ALPHA)
+    surf.blit(shown, shown.get_rect(center=rect.center))
+    edge = theme.RED if awake and not defeated else theme.CARD_EDGE
+    pygame.draw.rect(surf, edge, rect, 2, border_radius=6)
+
+
+
+def draw_mind_flayer_looming(surf: pygame.Surface, board_rect: pygame.Rect) -> None:
+    """While the Mind Flayer is awake: its picture looms over the board in dark red and the board gets a red
+    edge. It has no cell of its own (it acts from the Upside Down), so this is only drawing, no game rule."""
+    edge = pygame.Surface(board_rect.size, pygame.SRCALPHA)
+    pygame.draw.rect(edge, (*theme.RED, MF_BORDER_ALPHA), edge.get_rect(), MF_BORDER_W)
+    key = (board_rect.width, board_rect.height)
+    if key not in _loom_cache:
+        _loom_cache[key] = None
+        path = sprites.ASSET_DIR / "mind_flayer.png"
+        if path.is_file():
+            try:
+                src = pygame.image.load(str(path)).convert_alpha()
+                k = min(board_rect.width * MF_LOOM_WIDTH / src.get_width(), board_rect.height / src.get_height())
+                pic = pygame.transform.smoothscale(
+                    src, (max(1, int(src.get_width() * k)), max(1, int(src.get_height() * k))))
+                pic.fill((*MF_LOOM_TINT, 0), special_flags=pygame.BLEND_RGBA_ADD)
+                pic.set_alpha(MF_LOOM_ALPHA)
+                _loom_cache[key] = pic
+            except (pygame.error, OSError):
+                pass
+    pic = _loom_cache[key]
+    if pic is not None and config.SPRITES_ENABLED:
+        surf.blit(pic, pic.get_rect(midtop=(board_rect.centerx, board_rect.top + MF_LOOM_DROP)))
+    surf.blit(edge, board_rect.topleft)

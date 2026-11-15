@@ -79,3 +79,41 @@ def test_splitter_finds_figures_in_reading_order_and_merges_specks():
     boxes = split_sprites.characters(sheet)
     assert len(boxes) == 3
     assert [b[0] for b in boxes] == [10, 200, 10] and boxes[0][2] == 52
+
+
+
+def test_mind_flayer_card_is_white_and_needs_the_picture(tmp_path, monkeypatch):
+    from ui import icons
+    monkeypatch.setattr(sprites, "ASSET_DIR", tmp_path)
+    icons._mf_cache.clear()
+    pygame.init()
+    rect = pygame.Rect(10, 10, 100, 50)
+    surf = pygame.Surface((130, 80))
+    icons.draw_mind_flayer_card(surf, rect, False, False)           # no file: nothing drawn
+    assert surf.get_at((15, 15))[:3] == (0, 0, 0)
+    make_png(tmp_path / "mind_flayer.png", (200, 100), (0, 0, 0, 255))
+    icons._mf_cache.clear()
+    icons.draw_mind_flayer_card(surf, rect, True, False)
+    assert surf.get_at((13, 13))[:3] == (255, 255, 255)             # white tile around the dark picture
+    assert sum(surf.get_at((60, 35))[:3]) < 30                      # the dark picture itself
+    icons._mf_cache.clear()
+
+
+
+def test_mind_flayer_looms_over_the_board_only_when_awake(tmp_path, monkeypatch):
+    from ui import icons
+    monkeypatch.setattr(sprites, "ASSET_DIR", tmp_path)
+    make_png(tmp_path / "mind_flayer.png", (200, 100), (0, 0, 0, 255))
+    icons._loom_cache.clear()
+    pygame.font.init()
+    session = GameSession(ai_mode=True)
+    s = session.state
+    fonts = theme.load_fonts()
+    asleep, awake = pygame.Surface((1000, 720)), pygame.Surface((1000, 720))
+    game_screen.draw_board(asleep, s, fonts, session.overlay())
+    s.mind_flayer.active = True
+    before = (s.turn, s.eleven_pos, s.eleven_hp)
+    game_screen.draw_board(awake, s, fonts, session.overlay())
+    assert pygame.image.tostring(asleep, "RGB") != pygame.image.tostring(awake, "RGB")
+    assert (s.turn, s.eleven_pos, s.eleven_hp) == before
+    icons._loom_cache.clear()
