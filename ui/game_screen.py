@@ -14,7 +14,7 @@ from game.board import Terrain
 from game.state import GameState, Winner
 from ui import emoji, icons, gate, sprites, theme
 from ui.icons import (draw_ability_icon, draw_hearts, draw_mind_flayer_card, draw_mind_flayer_looming,
-                      draw_portrait)
+                      draw_portrait, draw_thumb)
 from ui.log_view import visible_entries
 from ui.stats_view import stats_sections
 from ui.theme import CARD_HEADER_H, CELL, HUD_H, LINE_H, PANEL_W
@@ -92,9 +92,21 @@ def control_buttons(state: GameState, ai_mode: bool, paused: bool) -> List[Butto
     ]
 
 
-PANEL_TOP = 146                  # where the stat cards start (below the buttons and the goal line)
+PANEL_TOP = 156                  # where the stat cards start (below the buttons, key hints and goal bar)
 CARD_GAP = 6
 CARD_MAX_LINES = (6, 5, 4, 4)    # most lines each card can show: A*, Vecna, Eleven MCTS, Mind Flayer MCTS
+KEYS_Y = 102                     # key hint row under the buttons
+GOAL_BAR_Y, GOAL_BAR_H = 122, 26
+CARD_STRIPE_W = 4                # coloured stripe on the left of each AI card
+CARD_TEXT_X = 12                 # text starts this far from the left edge of a card
+THUMB_W, THUMB_H = 44, 20        # little character picture in a card's title row
+CARD_ACCENTS = ((240, 140, 50), (220, 40, 50), (80, 220, 255), (190, 120, 240))   # A*, Vecna, Eleven, Mind Flayer
+CARD_THUMBS = ("demogorgon", "vecna", "eleven", None)         # None = the Mind Flayer (white tile)
+KEY_HINTS = (("Space", "pause"), ("N", "step"), ("-/+", "speed"), ("P", "paths"), ("R", "new"), ("M", "menu"))
+KEYCAP_BG, KEYCAP_EDGE = (40, 46, 78), (96, 108, 160)
+KEYCAP_H, KEYCAP_PAD, KEY_GAP = 17, 5, 9
+PILL_BG = (40, 36, 12)
+LOG_DOT_R = 3
 
 
 def panel_layout(state: GameState, window_h: int):
@@ -214,7 +226,7 @@ def _hud_card(surf: pygame.Surface, rect: pygame.Rect, title: str, fonts: theme.
     """A light HUD card with a small dark title."""
     pygame.draw.rect(surf, theme.CARD_LIGHT, rect, border_radius=8)
     pygame.draw.rect(surf, theme.CARD_LIGHT_EDGE, rect, 1, border_radius=8)
-    draw_text(surf, fonts.tiny, title, (rect.x + HUD_CARD_PAD, rect.y + 4), theme.INK_DIM)
+    draw_text(surf, fonts.tiny, title, (rect.x + HUD_CARD_PAD, rect.y + 4), theme.INK)
 
 
 def draw_hud(surf: pygame.Surface, state: GameState, fonts: theme.Fonts, overlay: Dict) -> None:
@@ -274,9 +286,9 @@ def draw_hud(surf: pygame.Surface, state: GameState, fonts: theme.Fonts, overlay
     line = overlay.get("message") or ""
     if line:
         draw_text(surf, fonts.small, line, (w - 8, HUD_ROW2_Y + HUD_ROW2_H + 2), (255, 255, 255), "topright")
-    draw_text(surf, fonts.tiny, "WASD move  Space wait  E attack  F rescue  X final attack", (8, HUD_H - 30), theme.DIM)
+    draw_text(surf, fonts.tiny, "WASD move  Space wait  E attack  F rescue  X final attack", (8, HUD_H - 30), theme.TEXT)
     draw_text(surf, fonts.tiny, "1 speed  2 teleport (then click a cell)  3 freeze  Esc cancel", (8, HUD_H - 16),
-              theme.DIM)
+              theme.TEXT)
 
 # ---------------------------------------------------------------- AI side panel
 def _fit(font, text: str, width: int) -> str:
@@ -287,6 +299,44 @@ def _fit(font, text: str, width: int) -> str:
         text = text[:-1]
     return text + "..."
 
+def _pill(surf: pygame.Surface, fonts: theme.Fonts, text: str, topright) -> None:
+    """The mode label (for example "Human vs AI") in a small rounded badge at the top right of the panel."""
+    if not text:
+        return
+    img = fonts.small.render(text, True, theme.GOLD)
+    rect = img.get_rect(topright=topright).inflate(14, 4)
+    pygame.draw.rect(surf, PILL_BG, rect, border_radius=10)
+    pygame.draw.rect(surf, theme.GOLD, rect, 1, border_radius=10)
+    surf.blit(img, img.get_rect(center=rect.center))
+
+
+def _keycaps(surf: pygame.Surface, fonts: theme.Fonts, x: int, y: int) -> None:
+    """Key hints drawn as little keys: [Space] pause  [N] step ..."""
+    for key, label in KEY_HINTS:
+        cap = fonts.tiny.render(key, True, theme.TEXT)
+        rect = pygame.Rect(x, y, cap.get_width() + 2 * KEYCAP_PAD, KEYCAP_H)
+        pygame.draw.rect(surf, KEYCAP_BG, rect, border_radius=4)
+        pygame.draw.rect(surf, KEYCAP_EDGE, rect, 1, border_radius=4)
+        surf.blit(cap, cap.get_rect(center=rect.center))
+        text = draw_text(surf, fonts.tiny, label, (rect.right + 4, rect.centery), theme.TEXT, "midleft")
+        x = text.right + KEY_GAP
+
+
+def _goal_bar(surf: pygame.Surface, fonts: theme.Fonts, rect: pygame.Rect, overlay: Dict) -> None:
+    """One bar: "GOAL" + what Eleven's MCTS goal is now, and the game seed at the right."""
+    pygame.draw.rect(surf, theme.CARD_BG, rect, border_radius=6)
+    pygame.draw.rect(surf, theme.CARD_EDGE, rect, 1, border_radius=6)
+    goal = overlay.get("goal")
+    draw_text(surf, fonts.tiny, "ELEVEN'S GOAL", (rect.x + 8, rect.centery), theme.DIM, "midleft")
+    right = rect.right - 8
+    if overlay.get("seed") is not None:
+        right = draw_text(surf, fonts.tiny, f"seed {overlay['seed']}", (rect.right - 8, rect.centery), theme.DIM,
+                          "midright").left - 10
+    text = goal if goal else ("-" if overlay.get("ai_mode") else "- (human control)")
+    x = rect.x + 8 + fonts.tiny.size("ELEVEN'S GOAL")[0] + 10
+    draw_text(surf, fonts.small, _fit(fonts.small, text, right - x), (x, rect.centery),
+              theme.CYAN if goal else theme.TEXT, "midleft")
+
 
 def draw_panel(surf: pygame.Surface, state: GameState, tm, fonts: theme.Fonts, overlay: Dict,
                buttons: List[Button], mouse_pos=None) -> None:
@@ -294,32 +344,29 @@ def draw_panel(surf: pygame.Surface, state: GameState, tm, fonts: theme.Fonts, o
     pygame.draw.rect(surf, theme.PANEL_BG, (x0, 0, PANEL_W, surf.get_height()))
     pygame.draw.line(surf, theme.CARD_EDGE, (x0, 0), (x0, surf.get_height()), 2)
     draw_text(surf, fonts.body, "AI PANEL", (x0 + 12, 8), theme.CYAN)
-    draw_text(surf, fonts.small, overlay.get("status", ""), (x0 + PANEL_W - 12, 10), theme.GOLD, "topright")
+    _pill(surf, fonts, overlay.get("status", ""), (x0 + PANEL_W - 12, 8))
     for btn in buttons:
         btn.draw(surf, fonts.small, mouse_pos)
-    draw_text(surf, fonts.tiny, "Space pause  N step  -/+ speed  P paths  R new  M menu",
-              (x0 + 12, 104), theme.DIM)
-    goal = overlay.get("goal")
-    if overlay.get("seed") is not None:
-        draw_text(surf, fonts.tiny, f"seed {overlay['seed']}", (x0 + PANEL_W - 12, 124), theme.DIM, "topright")
-    draw_text(surf, fonts.small, (f"Eleven's goal: {goal}" if goal else
-               ("Eleven's goal: -" if overlay.get("ai_mode") else "Eleven's goal: - (human control)")),
-              (x0 + 12, 122), theme.CYAN if goal else theme.DIM)
+    _keycaps(surf, fonts, x0 + 12, KEYS_Y)
+    _goal_bar(surf, fonts, pygame.Rect(x0 + 10, GOAL_BAR_Y, PANEL_W - 20, GOAL_BAR_H), overlay)
 
-    inner = PANEL_W - 28
+    inner = PANEL_W - 28 - CARD_TEXT_X + 8
     cards, log_rect = panel_layout(state, surf.get_height())
-    for rect, sec in zip(cards, stats_sections(tm)):
+    for i, (rect, sec) in enumerate(zip(cards, stats_sections(tm))):
+        accent = CARD_ACCENTS[i]
         pygame.draw.rect(surf, theme.CARD_BG, rect, border_radius=6)
         pygame.draw.rect(surf, theme.CARD_EDGE, rect, 1, border_radius=6)
-        draw_text(surf, fonts.small, sec.title, (rect.x + 8, rect.y + 4), theme.GOLD if sec.has_data else theme.DIM)
+        pygame.draw.rect(surf, accent, (rect.x + 1, rect.y + 5, CARD_STRIPE_W, rect.height - 10), border_radius=2)
+        draw_text(surf, fonts.small, sec.title, (rect.x + CARD_TEXT_X, rect.y + 4), theme.TEXT if sec.has_data else theme.DIM)
+        draw_thumb(surf, CARD_THUMBS[i], (rect.right - 8, rect.y + 3), THUMB_W, THUMB_H)
         ly = rect.y + CARD_HEADER_H
         for text in sec.lines:
             if ly + LINE_H > rect.bottom:
                 break
-            draw_text(surf, fonts.tiny, _fit(fonts.tiny, text, inner), (rect.x + 8, ly),
-                      theme.GREEN if sec.has_data else theme.DIM)
+            draw_text(surf, fonts.tiny, _fit(fonts.tiny, text, inner), (rect.x + CARD_TEXT_X, ly),
+                      theme.TEXT if sec.has_data else theme.DIM)
             ly += LINE_H
-    draw_log(surf, state, fonts, log_rect, overlay.get("log_offset", 0))
+        draw_log(surf, state, fonts, log_rect, overlay.get("log_offset", 0))
 
 
 def draw_log(surf: pygame.Surface, state: GameState, fonts: theme.Fonts, rect: pygame.Rect, offset: int = 0) -> None:
@@ -329,7 +376,7 @@ def draw_log(surf: pygame.Surface, state: GameState, fonts: theme.Fonts, rect: p
     pygame.draw.rect(surf, theme.CARD_EDGE, rect, 1, border_radius=6)
     capacity = max(1, (rect.height - CARD_HEADER_H - 4) // LINE_H)
     entries, older, newer = visible_entries(state.event_log, capacity, offset)
-    draw_text(surf, fonts.small, "Event log", (rect.x + 8, rect.y + 4), theme.GOLD)
+    draw_text(surf, fonts.small, "Event log", (rect.x + 8, rect.y + 4), theme.TEXT)
     if newer:
         hint = f"{newer} newer below - End"
     elif older:
@@ -341,12 +388,20 @@ def draw_log(surf: pygame.Surface, state: GameState, fonts: theme.Fonts, rect: p
         draw_text(surf, fonts.tiny, "no events yet", (rect.x + 8, rect.y + CARD_HEADER_H), theme.DIM)
         return
     ly, prefix_w = rect.y + CARD_HEADER_H, 34
+    dot_w = 2 * LOG_DOT_R + 6
     for e in entries:
         if e.turn is not None:
             draw_text(surf, fonts.tiny, f"T{e.turn}", (rect.x + 8, ly), theme.DIM)
         color = theme.LOG_COLORS.get(e.category, theme.LOG_COLORS["other"])
-        draw_text(surf, fonts.tiny, _fit(fonts.tiny, e.text, rect.width - 16 - prefix_w),
-                  (rect.x + 8 + prefix_w, ly), color)
+        pygame.draw.circle(
+            surf, color,
+            (rect.x + 8 + prefix_w + LOG_DOT_R, ly + LINE_H // 2),
+            LOG_DOT_R
+        )
+        draw_text(
+            surf, fonts.tiny, _fit(fonts.tiny, e.text, rect.width - 16 - prefix_w - dot_w),
+            (rect.x + 8 + prefix_w + dot_w, ly), theme.TEXT
+        )
         ly += LINE_H
 
 

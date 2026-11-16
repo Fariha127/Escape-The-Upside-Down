@@ -18,6 +18,8 @@ MF_LOOM_DROP = 60                        # how far below the top of the board th
 MF_BORDER_ALPHA = 150
 MF_BORDER_W = 5
 _loom_cache: Dict[Tuple[int, int], Optional[pygame.Surface]] = {}
+THUMB_BG, THUMB_EDGE = (46, 52, 88), (84, 94, 146)   # tile behind a small character picture
+_thumb_cache: Dict[Tuple[str, int], Optional[pygame.Surface]] = {}
 _mf_cache: Dict[Tuple[int, int], Optional[pygame.Surface]] = {}
 
 HEART_STEP = 17                          # distance between two hearts in the HUD
@@ -61,7 +63,7 @@ def draw_ability_icon(surf: pygame.Surface, rect: pygame.Rect, ability: str, unl
 
 
 
-def draw_mind_flayer_card(surf: pygame.Surface, rect: pygame.Rect, awake: bool, defeated: bool) -> None:
+def draw_mind_flayer_card(surf: pygame.Surface, rect: pygame.Rect, awake: bool, defeated: bool, edge=None) -> None:
     """The Mind Flayer's picture on a white tile (it has no board cell). Faded while asleep or defeated,
     full colour with a red border while awake. Does nothing if assets/characters/mind_flayer.png is missing."""
     key = (rect.width, rect.height)
@@ -86,7 +88,7 @@ def draw_mind_flayer_card(surf: pygame.Surface, rect: pygame.Rect, awake: bool, 
     elif not awake:
         shown.set_alpha(MF_ASLEEP_ALPHA)
     surf.blit(shown, shown.get_rect(center=rect.center))
-    edge = theme.RED if awake and not defeated else theme.CARD_EDGE
+    edge = edge or (theme.RED if awake and not defeated else theme.CARD_EDGE)
     pygame.draw.rect(surf, edge, rect, 2, border_radius=6)
 
 
@@ -129,3 +131,27 @@ def draw_hearts(surf: pygame.Surface, topleft: Tuple[int, int], value: int, maxi
         pygame.draw.circle(surf, c, (cx + size // 2, y0 + size // 2 + 1), size // 2 + 1)
         pygame.draw.polygon(surf, c, [(cx - size - 1, y0 + size // 2 + 3), (cx + size + 1, y0 + size // 2 + 3),
                                       (cx, y0 + size * 2 + 1)])
+
+def draw_thumb(surf: pygame.Surface, name: Optional[str], topright: Tuple[int, int], width: int, height: int) -> None:
+    """A small character picture on a tile (for the title row of a panel card). name None = the Mind Flayer on its
+    white tile. Does nothing if the picture file is missing."""
+    rect = pygame.Rect(0, 0, width, height)
+    rect.topright = topright
+    if not config.SPRITES_ENABLED:
+        return
+    if name is None:
+        draw_mind_flayer_card(surf, rect, True, False, edge=theme.CARD_EDGE)
+        return
+    key = (name, height)
+    if key not in _thumb_cache:
+        pic = sprites.load(name)
+        if pic is not None:
+            k = (height - 2) / pic.get_height()
+            pic = pygame.transform.smoothscale(pic, (max(1, int(pic.get_width() * k)), height - 2))
+        _thumb_cache[key] = pic
+    pic = _thumb_cache[key]
+    if pic is None:
+        return
+    pygame.draw.rect(surf, THUMB_BG, rect, border_radius=5)
+    pygame.draw.rect(surf, THUMB_EDGE, rect, 1, border_radius=5)
+    surf.blit(pic, pic.get_rect(center=rect.center))
