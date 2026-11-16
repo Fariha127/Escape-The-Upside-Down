@@ -50,3 +50,41 @@ def test_session_plays_without_an_audio_device(monkeypatch):
 def test_mind_flayer_waking_has_its_own_sound():
     assert "mind_flayer" in sound.events_between(snap(), snap(mind_flayer_awake=True))
     assert "mind_flayer" not in sound.events_between(snap(mind_flayer_awake=True), snap(mind_flayer_awake=True))                                         # must not raise
+
+
+
+def test_each_hit_source_has_its_own_sound():
+    assert sound.hit_sounds(["[T3] Eleven takes 1 damage from Demogorgon 2 (HP 4)"]) == ["hit_demogorgon"]
+    assert sound.hit_sounds(["[T3] Eleven takes 2 damage from Vecna (HP 3)"]) == ["hit_vecna"]
+    assert sound.hit_sounds(["[T3] Eleven takes 1 damage from a hazard (HP 4)"]) == ["hit"]
+    both = ["[T3] Eleven takes 1 damage from Demogorgon 2 (HP 4)", "[T3] Eleven takes 2 damage from Vecna (HP 2)"]
+    assert sound.hit_sounds(both) == ["hit_demogorgon", "hit_vecna"]           # Vecna last = the one played
+    assert sound.events_between(snap(), snap(hp=5), ["[T1] Eleven takes 2 damage from Vecna (HP 5)"]) == ["hit_vecna"]
+
+
+def test_all_sounds_are_different_tones():
+    tones = {n: tuple(sound.TONES[n]) for n in ("attack", "rescue", "hit", "hit_demogorgon", "hit_vecna", "win", "lose")}
+    assert len(set(tones.values())) == len(tones)
+
+
+def test_a_wav_file_replaces_the_generated_tone(tmp_path, monkeypatch):
+    import array
+    import wave
+    monkeypatch.setattr(sound, "SOUND_DIR", tmp_path)
+    with wave.open(str(tmp_path / "rescue.wav"), "wb") as w:                  # 5 s, stereo, 44.1 kHz
+        w.setnchannels(2)
+        w.setsampwidth(2)
+        w.setframerate(44100)
+        w.writeframes(array.array("h", [8000, 8000] * (44100 * 5)).tobytes())
+    data = sound.render("rescue")
+    seconds = len(data) / 2 / config.SOUND_SAMPLE_RATE
+    assert abs(seconds - config.SOUND_FILE_MAX_SECONDS) < 0.05                # cut to the maximum length
+    samples = array.array("h", data)
+    assert abs(samples[-1]) < abs(samples[len(samples) // 2])                  # fades out at the end
+
+
+def test_missing_or_broken_wav_keeps_the_generated_tone(tmp_path, monkeypatch):
+    monkeypatch.setattr(sound, "SOUND_DIR", tmp_path)
+    (tmp_path / "attack.wav").write_bytes(b"not a wav file")
+    assert sound.render("attack") == sound.render("attack")
+    assert len(sound.render("attack")) == 2 * int(config.SOUND_SAMPLE_RATE * 0.05) + 2 * int(config.SOUND_SAMPLE_RATE * 0.08)

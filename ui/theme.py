@@ -9,7 +9,7 @@ CELL = 36                 # one board cell
 HUD_H = 182               # height of the HUD strip above the board
 PANEL_W = 420             # width of the AI side panel to the right of the board
 LINE_H = 14               # line spacing inside panel cards
-CARD_HEADER_H = 22        # title row of a panel card
+CARD_HEADER_H = 38        # title row of a panel card
 
 # --- colours ---
 BG = (8, 10, 22)

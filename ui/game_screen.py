@@ -99,7 +99,7 @@ KEYS_Y = 102                     # key hint row under the buttons
 GOAL_BAR_Y, GOAL_BAR_H = 122, 26
 CARD_STRIPE_W = 4                # coloured stripe on the left of each AI card
 CARD_TEXT_X = 12                 # text starts this far from the left edge of a card
-THUMB_W, THUMB_H = 44, 20        # little character picture in a card's title row
+THUMB_W, THUMB_H = 64, 32        # little character picture in a card's title row
 CARD_ACCENTS = ((240, 140, 50), (220, 40, 50), (80, 220, 255), (190, 120, 240))   # A*, Vecna, Eleven, Mind Flayer
 CARD_THUMBS = ("demogorgon", "vecna", "eleven", None)         # None = the Mind Flayer (white tile)
 KEY_HINTS = (("Space", "pause"), ("N", "step"), ("-/+", "speed"), ("P", "paths"), ("R", "new"), ("M", "menu"))

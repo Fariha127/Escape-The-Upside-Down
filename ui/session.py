@@ -90,7 +90,8 @@ class GameSession:
         calls, before = mm.calls, self.state.vecna.pos
         before_snap = sound.snapshot(self.state)
         ok = fn()
-        self.sound.play(sound.events_between(before_snap, sound.snapshot(self.state)))
+        self.sound.play(sound.events_between(before_snap, sound.snapshot(self.state),
+                                             self.state.event_log[before_snap.log_len:]))
         if mm.calls > calls:
             self.vecna_last = {"from": before, "to": self.state.vecna.pos, "action": mm.last.action,
                                "score": mm.last.score}

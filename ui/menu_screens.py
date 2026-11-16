@@ -210,4 +210,4 @@ class SettingsScreen(Screen):
             b.draw(surf, fonts.body, mouse_pos)
         w = surf.get_width()
         draw_text(surf, fonts.tiny, "Click a row to change it (keys 1-4). All are values from config.py.",
-                  (w // 2, 360), theme.DIM, "center")
+                  (w // 2, 414), theme.DIM, "center")

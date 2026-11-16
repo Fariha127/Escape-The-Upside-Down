@@ -18,7 +18,7 @@ MF_LOOM_DROP = 60                        # how far below the top of the board th
 MF_BORDER_ALPHA = 150
 MF_BORDER_W = 5
 _loom_cache: Dict[Tuple[int, int], Optional[pygame.Surface]] = {}
-THUMB_BG, THUMB_EDGE = (46, 52, 88), (84, 94, 146)   # tile behind a small character picture
+THUMB_BG, THUMB_EDGE = (197, 198, 199), (150, 156, 170)   # light ash tile behind a small character picture
 _thumb_cache: Dict[Tuple[str, int], Optional[pygame.Surface]] = {}
 _mf_cache: Dict[Tuple[int, int], Optional[pygame.Surface]] = {}
 
@@ -63,7 +63,7 @@ def draw_ability_icon(surf: pygame.Surface, rect: pygame.Rect, ability: str, unl
 
 
 
-def draw_mind_flayer_card(surf: pygame.Surface, rect: pygame.Rect, awake: bool, defeated: bool, edge=None) -> None:
+def draw_mind_flayer_card(surf, rect, awake, defeated, edge=None, bg=None) -> None:
     """The Mind Flayer's picture on a white tile (it has no board cell). Faded while asleep or defeated,
     full colour with a red border while awake. Does nothing if assets/characters/mind_flayer.png is missing."""
     key = (rect.width, rect.height)
@@ -81,7 +81,7 @@ def draw_mind_flayer_card(surf: pygame.Surface, rect: pygame.Rect, awake: bool, 
     pic = _mf_cache[key]
     if pic is None or not config.SPRITES_ENABLED:
         return
-    pygame.draw.rect(surf, MF_TILE_BG, rect, border_radius=6)
+    pygame.draw.rect(surf, bg or MF_TILE_BG, rect, border_radius=6)
     shown = pic.copy()
     if defeated:
         shown.set_alpha(MF_DEFEATED_ALPHA)
@@ -140,7 +140,7 @@ def draw_thumb(surf: pygame.Surface, name: Optional[str], topright: Tuple[int, i
     if not config.SPRITES_ENABLED:
         return
     if name is None:
-        draw_mind_flayer_card(surf, rect, True, False, edge=theme.CARD_EDGE)
+        draw_mind_flayer_card(surf, rect, True, False, edge=THUMB_EDGE, bg=THUMB_BG)
         return
     key = (name, height)
     if key not in _thumb_cache:

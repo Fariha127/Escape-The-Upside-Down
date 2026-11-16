@@ -79,6 +79,8 @@ ANIM_TURN_FRACTION = 0.7         # AI-vs-AI: a slide may use at most this share 
 ANIM_MAX_SLIDE_CELLS = 2         # longer jumps (Teleport) are instant
 SOUND_ENABLED = True             # UI: sound effects on/off (also a Settings row)
 SOUND_VOLUME = 0.4               # 0.0 - 1.0
+SOUND_FILE_MAX_SECONDS = 3.0     # a sound file from assets/sounds/ is cut to this length ...
+SOUND_FILE_FADE_SECONDS = 0.5    # ... with this fade-out at its end
 SOUND_SAMPLE_RATE = 22050        # Hz of the generated tones
 
 # --- Flayer (MCTS: corrupt cells, summon creatures) ---
