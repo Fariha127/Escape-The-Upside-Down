@@ -48,4 +48,4 @@ def test_every_chart_kind_is_written(tmp_path):
 def test_tag_filter_and_empty_folder(tmp_path):
     write(tmp_path / "mcts_a_summary.csv", win_rows("eleven_50_sims", "eleven_150_sims"))
     assert pr.make_all(str(tmp_path), str(tmp_path / "p"), tag="b") == 0
-    assert pr.make_all(str(tmp_path / "nothing"), str(tmp_path / "p2")) == 0p
+    assert pr.make_all(str(tmp_path / "nothing"), str(tmp_path / "p2")) == 0

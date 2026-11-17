@@ -47,7 +47,9 @@ def test_thumb_without_picture_draws_nothing(tmp_path, monkeypatch):
     pygame.init()
     monkeypatch.setattr(sprites, "ASSET_DIR", tmp_path)
     icons._thumb_cache.clear()
+    monkeypatch.setattr(sprites, "_cache", {})        # earlier tests may already have loaded the pictures
     surf = pygame.Surface((80, 40))
     icons.draw_thumb(surf, "vecna", (70, 5), 44, 20)
     assert surf.get_at((50, 15))[:3] == (0, 0, 0)
     icons._thumb_cache.clear()
+    monkeypatch.setattr(sprites, "_cache", {})        # earlier tests may already have loaded the pictures

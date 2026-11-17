@@ -42,10 +42,18 @@ ABILITY_ORDER = (("SPEED", "1"), ("TELEPORT", "2"), ("FREEZE", "3"))
 
 
 # ---------------------------------------------------------------- geometry
+LOG_MIN_LINES = 6                # the event log card always has room for at least this many lines
+
+def _panel_min_height() -> int:
+    """Window height at which the four stat cards plus an event log of LOG_MIN_LINES lines all fit."""
+    y = PANEL_TOP
+    for n in CARD_MAX_LINES:
+        y += CARD_HEADER_H + LINE_H * n + 4 + CARD_GAP
+    return y + CARD_HEADER_H + 4 + LINE_H * LOG_MIN_LINES + 8
+
 def window_size(state: GameState):
-    return state.board.width * CELL + PANEL_W, max(state.board.height * CELL + HUD_H, 690)
-
-
+    return (state.board.width * CELL + PANEL_W,
+            max(state.board.height * CELL + HUD_H, 690, _panel_min_height()))
 def board_width(state: GameState) -> int:
     return state.board.width * CELL
 
@@ -94,7 +102,7 @@ def control_buttons(state: GameState, ai_mode: bool, paused: bool) -> List[Butto
 
 PANEL_TOP = 156                  # where the stat cards start (below the buttons, key hints and goal bar)
 CARD_GAP = 6
-CARD_MAX_LINES = (6, 5, 4, 4)    # most lines each card can show: A*, Vecna, Eleven MCTS, Mind Flayer MCTS
+CARD_MAX_LINES = (4, 5, 4, 4)    # most lines each card can show: A*, Vecna, Eleven MCTS, Mind Flayer MCTS
 KEYS_Y = 102                     # key hint row under the buttons
 GOAL_BAR_Y, GOAL_BAR_H = 122, 26
 CARD_STRIPE_W = 4                # coloured stripe on the left of each AI card
@@ -107,7 +115,6 @@ KEYCAP_BG, KEYCAP_EDGE = (40, 46, 78), (96, 108, 160)
 KEYCAP_H, KEYCAP_PAD, KEY_GAP = 17, 5, 9
 PILL_BG = (40, 36, 12)
 LOG_DOT_R = 3
-
 
 def panel_layout(state: GameState, window_h: int):
     """Rectangles of the four stat cards and of the event log card. Card heights are fixed (from the most
@@ -366,7 +373,7 @@ def draw_panel(surf: pygame.Surface, state: GameState, tm, fonts: theme.Fonts, o
             draw_text(surf, fonts.tiny, _fit(fonts.tiny, text, inner), (rect.x + CARD_TEXT_X, ly),
                       theme.TEXT if sec.has_data else theme.DIM)
             ly += LINE_H
-        draw_log(surf, state, fonts, log_rect, overlay.get("log_offset", 0))
+    draw_log(surf, state, fonts, log_rect, overlay.get("log_offset", 0))
 
 
 def draw_log(surf: pygame.Surface, state: GameState, fonts: theme.Fonts, rect: pygame.Rect, offset: int = 0) -> None:
