@@ -1,0 +1,5 @@
+setting,games,errors,wins,win_rate,ci95_low,ci95_high,avg_turns,avg_rescued,mf_woke_rate,mf_defeated_rate,eleven_search_ms,mf_search_ms,minimax_ms,game_seconds
+eleven_50_sims,20,0,5,0.25,0.112,0.469,91.3,3.05,0.25,0.25,77.93,5.64,6.808,4.7
+eleven_150_sims,20,0,14,0.7,0.481,0.855,91.7,3.75,0.75,0.75,128.11,6.38,9.397,7.7
+eleven_300_sims,20,0,16,0.8,0.584,0.919,86.9,3.8,0.8,0.8,137.2,6.04,9.202,7.9
+eleven_600_sims,20,0,17,0.85,0.64,0.948,84.8,3.85,0.85,0.85,157.34,6.71,8.816,8.8

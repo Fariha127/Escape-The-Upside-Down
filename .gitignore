@@ -4,3 +4,9 @@ __pycache__/
 .venv/
 .idea/
 .vscode/
+# experiment output: keep only the runs made with --tag final (and their charts)
+experiments/results/*
+!experiments/results/*_final_*
+!experiments/results/plots/
+experiments/results/plots/*
+!experiments/results/plots/*_final.png
