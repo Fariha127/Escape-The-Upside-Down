@@ -21,8 +21,9 @@ from ui.theme import CARD_HEADER_H, CELL, HUD_H, LINE_H, PANEL_W
 from ui.widgets import Button, draw_bar, draw_text
 
 COLORS = {
-    Terrain.FLOOR: (22, 26, 44), Terrain.WALL: (4, 4, 10),
-    Terrain.VINE: (60, 14, 24), Terrain.HAZARD: (110, 40, 10),
+    Terrain.FLOOR: theme.CELL_FLOOR, Terrain.WALL: theme.CELL_WALL,
+    Terrain.VINE: theme.CELL_FLOOR,          # vines are drawn like normal path (no gameplay effect)
+    Terrain.HAZARD: theme.CELL_HAZARD,
 }
 
 KEYMAP = {
