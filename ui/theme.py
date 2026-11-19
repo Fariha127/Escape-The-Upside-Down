@@ -62,10 +62,11 @@ class Fonts:
     body: pygame.font.Font       # normal text
     small: pygame.font.Font      # panel text
     tiny: pygame.font.Font       # captions
+    micro: pygame.font.Font = None  # compact hints and status lines
 
 
 def load_fonts() -> Fonts:
     """Create the fonts once pygame is initialised."""
     def mk(size: int, bold: bool = False) -> pygame.font.Font:
         return pygame.font.SysFont(FONT_NAMES, size, bold=bold)
-    return Fonts(title=mk(40, True), big=mk(48, True), body=mk(18), small=mk(14), tiny=mk(12))
+    return Fonts(title=mk(40, True), big=mk(48, True), body=mk(18), small=mk(14), tiny=mk(11), micro=mk(10))

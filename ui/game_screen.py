@@ -289,13 +289,14 @@ def draw_hud(surf: pygame.Surface, state: GameState, fonts: theme.Fonts, overlay
               "midtop")
     # status + message lines, then the key hints
     status = _status_text(state)
+    f_hint = fonts.micro or fonts.tiny
     if status:
-        draw_text(surf, fonts.tiny, status, (8, HUD_ROW2_Y + HUD_ROW2_H + 4), theme.GOLD)
+        draw_text(surf, f_hint, status, (8, HUD_ROW2_Y + HUD_ROW2_H + 4), theme.GOLD)
     line = overlay.get("message") or ""
     if line:
-        draw_text(surf, fonts.small, line, (w - 8, HUD_ROW2_Y + HUD_ROW2_H + 2), (255, 255, 255), "topright")
-    draw_text(surf, fonts.tiny, "WASD move  Space wait  E attack  F rescue  X final attack", (8, HUD_H - 30), theme.TEXT)
-    draw_text(surf, fonts.tiny, "1 speed  2 teleport (then click a cell)  3 freeze  Esc cancel", (8, HUD_H - 16),
+        draw_text(surf, f_hint, line, (w - 8, HUD_ROW2_Y + HUD_ROW2_H + 4), (255, 255, 255), "topright")
+    draw_text(surf, f_hint, "WASD move  Space wait  E attack  F rescue  X final attack", (8, HUD_H - 26), theme.TEXT)
+    draw_text(surf, f_hint, "1 speed  2 teleport (then click a cell)  3 freeze  Esc cancel", (8, HUD_H - 14),
               theme.TEXT)
 
 # ---------------------------------------------------------------- AI side panel
