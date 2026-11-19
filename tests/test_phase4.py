@@ -261,9 +261,10 @@ def test_ai_teleport_choice_is_safe_and_farthest_from_enemies():
     for a in (Action.MOVE_DOWN, Action.MOVE_DOWN, Action.MOVE_DOWN):
         tm.step(a)
     best = teleport.best_safe_cell(s)
-    assert best in teleport.safe_cells(s)
+    visited_safe = [c for c in teleport.safe_cells(s) if c in s.visited]
+    assert best in visited_safe
     dist = teleport.enemy_distance_map(s)
-    assert all(dist.get(best, 10**6) >= dist.get(c, 10**6) for c in teleport.safe_cells(s))
+    assert all(dist.get(best, 10**6) >= dist.get(c, 10**6) for c in visited_safe)
 
 
 
@@ -398,7 +399,7 @@ def test_random_playthrough_keeps_invariants(seed):
         action = rng.choice(acts)
         target = None
         if action == Action.USE_TELEPORT:
-            target = teleport.best_safe_cell(s)
+            target = teleport.best_safe_cell(s) or teleport.safe_cells(s)[0]
         assert tm.step(action, target=target)
         assert 0 <= s.eleven_hp <= config.MAX_HP
         assert 0 <= s.eleven_power <= config.MAX_POWER

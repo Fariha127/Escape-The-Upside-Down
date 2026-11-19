@@ -57,7 +57,7 @@ def enemy_distance_map(state: "GameState") -> Dict[Pos, int]:
 def best_safe_cell(state: "GameState") -> Optional[Pos]:
     """AI choice: maximise the walking distance to the nearest enemy (ties: lowest coordinates).
     This is a BFS distance calculation, not an A* search, so it is not counted in A* stats."""
-    cells = safe_cells(state)
+    cells = [p for p in safe_cells(state) if p in state.visited]   # the AI only teleports back to cells it has seen
     if not cells:
         return None
     dist = enemy_distance_map(state)

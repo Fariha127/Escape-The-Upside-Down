@@ -448,7 +448,7 @@ def test_random_games_with_an_awake_mind_flayer_keep_invariants(seed):
     tm.mind_flayer_ai.metrics = tm.metrics
     while not s.game_over:
         action = rng.choice(legal_eleven_actions(s))
-        assert tm.step(action, target=teleport.best_safe_cell(s) if action == Action.USE_TELEPORT else None)
+        assert tm.step(action, target=(teleport.best_safe_cell(s) or teleport.safe_cells(s)[0]) if action == Action.USE_TELEPORT else None)
         check_invariants(s)
     assert s.winner in (Winner.ENEMIES, Winner.ELEVEN)
 

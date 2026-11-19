@@ -88,7 +88,7 @@ def applicable_goals(state) -> List[Goal]:
     legal = set(legal_eleven_actions(state))
     if not config.ELEVEN_ABILITIES_ONLY_IN_DANGER or enemy_near(state, config.ELEVEN_ABILITY_DANGER_DISTANCE):
         for a in AI_ABILITIES:
-            if _ABILITY_ACTION[a] in legal:
+            if _ABILITY_ACTION[a] in legal and (a != "TELEPORT" or teleport.best_safe_cell(state) is not None):
                 goals.append(Goal(Kind.ABILITY, a))
     return goals
 
@@ -195,7 +195,7 @@ class GoalRun:
             return self._walk(state, step_fn, state.gate_pos)
         if k == Kind.ABILITY:
             action = _ABILITY_ACTION[arg]
-            if action not in legal_eleven_actions(state):
+            if action not in legal_eleven_actions(state) or (arg == "TELEPORT" and teleport.best_safe_cell(state) is None):
                 return None
             self.used = True
             return action, (teleport.best_safe_cell(state) if arg == "TELEPORT" else None)

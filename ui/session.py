@@ -47,6 +47,22 @@ def ai_turn(state: GameState, tm: TurnManager, ai: ElevenAI) -> None:
             tm.step(Action.WAIT)                          # never stall the game
 
 
+BLOCKED_HINT_KEYS = (            # (action, hint text) shown when Eleven cannot move anywhere
+    (Action.ATTACK, "E attack"), (Action.RESCUE, "F rescue"), (Action.FINAL_ATTACK, "X final attack"),
+    (Action.USE_TELEPORT, "2 teleport"), (Action.USE_FREEZE, "3 freeze"),
+)
+
+
+def blocked_hint(state: GameState) -> str:
+    """Hint for a human whose arrow key was rejected. Empty unless Eleven has no legal move at all
+    (walls, corrupted cells, enemies, closed gate). Reads only the shared rules, changes nothing."""
+    legal = rules.legal_eleven_actions(state)
+    if state.game_over or any(a in MOVE_DELTAS for a in legal):
+        return ""
+    options = [text for action, text in BLOCKED_HINT_KEYS if action in legal]
+    return "Blocked - " + " / ".join(options + ["Space wait"])
+
+
 class GameSession:
     """State of one play-through plus the UI-side flags (pause, speed, paths, teleport picking)."""
 
@@ -236,7 +252,8 @@ class GameSession:
                 self.message = ""
             elif action in MOVE_DELTAS and rules.gate_closed_to_eleven(s, rules.move_target(s, action)):
                 self.message = "The gate is closed - defeat the Mind Flayer first"
-            # other illegal moves are ignored
+            elif action in MOVE_DELTAS:
+                self.message = blocked_hint(s)          # empty unless Eleven cannot move anywhere
 
     # ------------------------------------------------------------------ what the renderer shows
     def status_text(self) -> str:
