@@ -1,6 +1,6 @@
 {
-  "date": "2026-11-17T16:20:27",
-  "python": "3.13.5",
+  "date": "2026-11-19T22:08:15",
+  "python": "3.12.10",
   "command": "experiments/run_batch.py mcts --games 20 --workers 4 --tag final",
   "config": {
     "ABILITY_DURATIONS": {

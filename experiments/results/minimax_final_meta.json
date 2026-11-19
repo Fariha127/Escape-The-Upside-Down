@@ -1,6 +1,6 @@
 {
-  "date": "2026-11-17T16:17:56",
-  "python": "3.13.5",
+  "date": "2026-11-19T22:02:22",
+  "python": "3.12.10",
   "command": "experiments/run_batch.py minimax --games 10 --tag final",
   "config": {
     "ABILITY_DURATIONS": {
