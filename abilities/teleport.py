@@ -21,18 +21,21 @@ def _manhattan(a: Pos, b: Pos) -> int:
 
 
 def is_safe_cell(state: "GameState", p: Pos) -> bool:
-    """Visited, enterable, not a hazard, not Eleven's own cell, far enough from every enemy."""
-    if p not in state.visited or p == state.eleven_pos:
+    """Any enterable, non-hazard cell that is not Eleven's own and far enough from every enemy."""
+    if not state.board.in_bounds(p) or p == state.eleven_pos:
         return False
     if state.is_blocked(p) or p in state.enemy_positions():
         return False
     if state.board.terrain_at(p) == Terrain.HAZARD:
         return False
+    if not state.board.in_bounds(p) or p == state.eleven_pos or p == state.gate_pos:
+        return False
     return all(_manhattan(p, e) >= config.TELEPORT_SAFE_DISTANCE for e in state.enemy_positions())
 
 
 def safe_cells(state: "GameState") -> List[Pos]:
-    return sorted(p for p in state.visited if is_safe_cell(state, p))
+    b = state.board
+    return [(x, y) for y in range(b.height) for x in range(b.width) if is_safe_cell(state, (x, y))]
 
 
 def enemy_distance_map(state: "GameState") -> Dict[Pos, int]:

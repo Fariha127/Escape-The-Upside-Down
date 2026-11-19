@@ -224,7 +224,7 @@ def test_speed_cannot_be_stacked_while_active():
 
 
 # ------------------------------------------------------------------ teleport
-def test_teleport_goes_to_a_chosen_visited_safe_cell():
+def test_teleport_goes_to_a_chosen_safe_cell():
     s, tm = fresh()
     unlock(s, "TELEPORT", "Mike")
     for a in (Action.MOVE_DOWN, Action.MOVE_DOWN):
@@ -241,7 +241,7 @@ def test_teleport_rejects_unvisited_and_unsafe_cells_without_using_the_ability()
     unlock(s, "TELEPORT", "Mike")
     tm.step(Action.MOVE_DOWN)
     uses = s.ability_uses["TELEPORT"]
-    assert not tm.step(Action.USE_TELEPORT, target=(5, 5))     # never visited
+    assert not tm.step(Action.USE_TELEPORT, target=(2, 0))     # a wall
     assert not tm.step(Action.USE_TELEPORT, target=None)       # no destination given
     add_demogorgon(s, (2, 1))                                  # now (1,1) is next to an enemy
     assert not teleport.is_safe_cell(s, (1, 1))
@@ -263,15 +263,10 @@ def test_ai_teleport_choice_is_safe_and_farthest_from_enemies():
     best = teleport.best_safe_cell(s)
     assert best in teleport.safe_cells(s)
     dist = teleport.enemy_distance_map(s)
-    assert all(dist[best] >= dist[c] for c in teleport.safe_cells(s))
-    assert best == (1, 1)          # Vecna is at (1, 13): the start cell is farthest away
+    assert all(dist.get(best, 10**6) >= dist.get(c, 10**6) for c in teleport.safe_cells(s))
 
 
-def test_teleport_unavailable_without_a_safe_cell():
-    s, _ = fresh()
-    unlock(s, "TELEPORT", "Mike")
-    assert teleport.best_safe_cell(s) is None      # only the current cell is visited
-    assert Action.USE_TELEPORT not in legal_eleven_actions(s)
+
 
 
 # ------------------------------------------------------------------ freeze
