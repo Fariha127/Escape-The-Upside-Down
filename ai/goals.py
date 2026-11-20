@@ -220,14 +220,20 @@ def hit_zone(state) -> set:
     return zone
 
 
-def safe_step_cost(state):
-    """A* step cost for Eleven: hazards cost more, and so do cells inside an enemy's hit zone."""
+def safe_step_cost(state, recent_positions: Optional[Iterable[Pos]] = None):
+    """A* step cost for Eleven: hazards cost more, and so do cells inside an enemy's hit zone.
+    Recent positions incur an additional penalty to discourage immediate back-and-forth oscillation."""
     zone = hit_zone(state)
     board = state.board
+    recent_set = set(recent_positions) if recent_positions else set()
+    penalty = getattr(config, "RECENT_STEP_PENALTY", 3.0)
 
     def cost(p: Pos) -> float:
         c = config.ASTAR_HAZARD_COST if board.terrain_at(p) == Terrain.HAZARD else 1
-        return c + (config.DANGER_STEP_COST if p in zone else 0)
+        c += (config.DANGER_STEP_COST if p in zone else 0)
+        if p in recent_set:
+            c += penalty
+        return c
     return cost
 
 

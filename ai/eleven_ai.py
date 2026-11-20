@@ -9,12 +9,12 @@ Each turn:
 The live state is only read here: the TurnManager applies the returned TurnChoice."""
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Optional
+from typing import List, Optional
 
 import config
-from abilities import speed
+from abilities import speed, teleport
 from ai.distance_table import walk_distance
-from ai.goals import Goal, GoalRun, safe_step_cost, table_step
+from ai.goals import Goal, GoalRun, Kind, safe_step_cost, table_step
 from ai.mcts import MCTSResult, mcts_search
 from ai.metrics import Metrics
 from ai.navigation import Navigator
@@ -48,10 +48,22 @@ class ElevenAI:
         self._danger_at_plan = False
         self.last_result: Optional[MCTSResult] = None
         self._stuck = False                     # last turn the goal gave no move: re-plan next turn
+        self.pos_history: List[Pos] = []
+
+    def _is_looping(self) -> bool:
+        """True if Eleven has repeated positions in a 2-step (A-B-A-B) or 3-step cycle."""
+        h = self.pos_history
+        if len(h) >= 4 and h[-1] == h[-3] and h[-2] == h[-4] and h[-1] != h[-2]:
+            return True
+        if len(h) >= 6 and h[-3:] == h[-6:-3] and len(set(h[-3:])) > 1:
+            return True
+        return False
 
     # ---- planning ----
     def _needs_replan(self, state) -> bool:
         if self.run is None or self.run.done(state) or self._stuck:
+            return True
+        if self._is_looping():
             return True
         if self.goal_age >= config.ELEVEN_REPLAN_TURNS:
             return True
@@ -60,27 +72,59 @@ class ElevenAI:
         return _enemy_danger(state) and not self._danger_at_plan
 
     def _plan(self, state) -> None:
+        looping = self._is_looping()
+        # Breakout: if stuck in a loop and Teleport is available to a safe visited cell, use it immediately
+        if looping and "TELEPORT" in state.unlocked_abilities and state.ability_uses.get("TELEPORT", 0) > 0:
+            safe_dest = teleport.best_safe_cell(state)
+            if safe_dest is not None:
+                self.run = GoalRun(Goal(Kind.ABILITY, "TELEPORT"), state)
+                self.goal_age = 0
+                self._hp_at_plan = state.eleven_hp
+                self._danger_at_plan = _enemy_danger(state)
+                self._stuck = False
+                self.pos_history.clear()
+                return
+
         result = mcts_search(state, self.simulations)
         self.metrics.record_mcts("eleven", result)
         self.last_result = result
-        self.run = GoalRun(result.goal, state)
+
+        # Goal hysteresis: if currently active goal is unfinished and we aren't looping,
+        # prefer sticking with it unless the alternative has a decisive advantage (> 8% visits)
+        chosen_goal = result.goal
+        if not looping and self.run is not None and not self.run.done(state) and not self._stuck:
+            current_label = self.run.goal.label
+            summary_dict = {item[0]: item[1] for item in result.root}
+            current_visits = summary_dict.get(current_label, 0)
+            if current_visits > 0 and (result.visits - current_visits) <= int(0.08 * result.simulations):
+                chosen_goal = self.run.goal
+
+        self.run = GoalRun(chosen_goal, state)
         self.goal_age = 0
         self._hp_at_plan = state.eleven_hp
         self._danger_at_plan = _enemy_danger(state)
         self._stuck = False
+        if looping:
+            self.pos_history.clear()
 
     # ---- the turn ----
     def _step_fn(self, state, target: Pos) -> Action:
-        """Real A* step toward `target` (hazards and enemy hit zones cost extra). If characters
-        block every route (a Demogorgon sitting in a corridor), fall back to one greedy step along
-        the static walking distances so Eleven keeps moving instead of freezing; with no free
-        step she waits."""
-        action, result = self.nav.next_action(state, target, safe_step_cost(state))
+        """Real A* step toward `target` (hazards, enemy hit zones, and recent footprint cost extra).
+        If characters block every route (a Demogorgon sitting in a corridor), fall back to one greedy
+        step along the static walking distances so Eleven keeps moving instead of freezing;
+        with no free step she waits."""
+        recent = [self.pos_history[-2]] if len(self.pos_history) >= 2 else []
+        action, result = self.nav.next_action(state, target, safe_step_cost(state, recent_positions=recent))
         if result.found:
             return action
         return table_step(state, target)
 
     def choose_turn(self, state) -> TurnChoice:
+        self.pos_history.append(state.eleven_pos)
+        limit = getattr(config, "ELEVEN_RECENT_POS_LIMIT", 8)
+        if len(self.pos_history) > limit:
+            self.pos_history.pop(0)
+
         replanned = self._needs_replan(state)
         if replanned:
             self._plan(state)
