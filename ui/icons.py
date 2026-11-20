@@ -8,10 +8,10 @@ import config
 from ui import emoji, sprites, theme
 
 MF_TILE_BG = (255, 255, 255)             # white, so the dark Mind Flayer picture can be seen
-MF_ASLEEP_ALPHA = 130                    # the picture is faded while the Mind Flayer is still asleep
+MF_ASLEEP_ALPHA = 180                    # the picture is faded while the Mind Flayer is still asleep
 MF_DEFEATED_ALPHA = 70
 MF_PAD = 4
-MF_LOOM_ALPHA = 25                      # how strongly the looming Mind Flayer shows over the board (0-255)
+MF_LOOM_ALPHA = 40                       # how strongly the looming Mind Flayer shows over the board (0-255)
 MF_LOOM_TINT = (190, 30, 60)             # added to the dark picture so it glows red on the dark board
 MF_LOOM_WIDTH = 0.9                      # picture width as a share of the board width
 MF_LOOM_DROP = 60                        # how far below the top of the board the picture starts (pixels)

@@ -123,8 +123,8 @@ def howto_blocks():
         ("Friends", f"F rescues a friend within {config.RESCUE_RANGE} cell. Each rescue gives "
                      f"{config.RESCUE_POWER_BONUS} power. Rescuing Will wakes the Mind Flayer."),
         ("Abilities", "All three are ready from the start and each can be used once: Speed (1) gives two moves per "
-                      "turn, Teleport (2, then click a highlighted cell) jumps to a safe visited cell, Freeze (3) "
-                      "stops every enemy for a few turns."),
+                      "turn, Teleport (2, then click a highlighted cell) jumps to any safe cell (at least 3 cells from "
+                      "enemies; the AI uses safe visited cells), Freeze (3) stops every enemy for a few turns."),
         ("Final attack", f"X needs the Mind Flayer awake and at least {config.FINAL_POWER_REQUIREMENT} power. It "
                          "defeats the Mind Flayer and opens the gate. Until then the gate cell is closed and "
                          "Eleven cannot step on it."),

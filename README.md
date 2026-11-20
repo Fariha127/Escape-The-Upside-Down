@@ -80,6 +80,7 @@ Walls, the map edge, other characters, corrupted cells and the closed gate block
 - **Demogorgons** (2 on a generated board by default) hit Eleven for 1 HP when adjacent. After a hit a Demogorgon waits one turn. They can be killed. The kill gives Eleven +3 power.
 - **Vecna** hits Eleven for 2 HP when she is within 1 cell. He has no cooldown. He **cannot be killed**, only frozen.
 - **Hazard cells** cost Eleven 1 HP each time she enters one.
+- **Vine cells** are passable and drawn like normal floor (no gameplay effect).
 - **Mind Flayer creatures** (summoned Demogorgons) behave like Demogorgons but give no power when killed. At most 3 exist at once.
 
 ### Friends and abilities
@@ -89,7 +90,7 @@ Rescuing a friend gives Eleven +4 power. Three friends are linked to an ability.
 | Key | Ability | Friend | Effect |
 |---|---|---|---|
 | 1 | Speed | Lucas | Two moves per turn for 3 turns |
-| 2 | Teleport | Mike | Jump to a previously visited, safe cell (at least 3 cells from every enemy). A human clicks the destination. The AI picks the safe cell whose nearest enemy is farthest away. |
+| 2 | Teleport | Mike | Jump to a safe cell: enterable, not the gate, at least 3 cells from every enemy. A human clicks any such cell. The AI only chooses among cells Eleven has already visited, picking the one whose nearest enemy is farthest away. |
 | 3 | Freeze | Will | Every Demogorgon and Vecna skips their turns for 2 turns |
 
 ### The Mind Flayer
@@ -353,12 +354,12 @@ Every run writes three files into `experiments/results/`:
 
 | Depth | Nodes visited (plain) | Nodes visited (Alpha-Beta) | Fewer nodes | Time (plain) | Time (Alpha-Beta) | Speedup |
 |---|---|---|---|---|---|---|
-| 2 | 15.0 | 9.8 | 34.5% | 0.51 ms | 0.48 ms | 1.06x |
-| 3 | 51.2 | 23.4 | 54.3% | 1.13 ms | 0.82 ms | 1.39x |
-| 4 | 176.6 | 46.7 | 73.5% | 6.43 ms | 2.99 ms | 2.15x |
-| 5 | 593.2 | 97.5 | 83.6% | 13.77 ms | 4.12 ms | 3.34x |
+| 2 | 15.0 | 9.8 | 34.5% | 1.39 ms | 1.38 ms | 1.01x |
+| 3 | 51.2 | 23.4 | 54.3% | 1.75 ms | 1.55 ms | 1.13x |
+| 4 | 176.6 | 46.7 | 73.5% | 16.21 ms | 7.65 ms | 2.12x |
+| 5 | 593.2 | 97.5 | 83.6% | 21.04 ms | 8.50 ms | 2.48x |
 
-The saving grows with depth. Plain Minimax multiplies its work by about 3.4 for every extra level, Alpha-Beta by about 2. At depth 2 there is almost nothing to prune, and the bookkeeping cancels the gain. The game uses depth 4, where the search takes about 3 ms.
+The saving grows with depth. Plain Minimax multiplies its work by about 3.4 for every extra level, Alpha-Beta by about 2. At depth 2 there is almost nothing to prune, and the bookkeeping cancels the gain. The game uses depth 4, where the search takes about 7.7 ms. Times were measured on one development machine and depend on the computer; node counts and win rates do not.
 
 ### Results: Eleven MCTS budget
 
@@ -366,12 +367,12 @@ The saving grows with depth. Plain Minimax multiplies its work by about 3.4 for 
 
 | Simulations per search | Win rate | 95% interval | Avg. friends rescued (of 4) | Avg. turns | Time per search |
 |---|---|---|---|---|---|
-| 50 | 25% | 11% to 47% | 3.05 | 91.3 | 78 ms |
-| 150 | 70% | 48% to 86% | 3.75 | 91.7 | 128 ms |
-| 300 (default) | 80% | 58% to 92% | 3.80 | 86.9 | 137 ms |
-| 600 | 85% | 64% to 95% | 3.85 | 84.8 | 157 ms |
+| 50 | 25% | 11% to 47% | 3.05 | 91.3 | 141 ms |
+| 150 | 70% | 48% to 86% | 3.75 | 91.7 | 293 ms |
+| 300 (default) | 80% | 58% to 92% | 3.80 | 86.9 | 336 ms |
+| 600 | 85% | 64% to 95% | 3.85 | 84.8 | 359 ms |
 
-More search means a better plan, with diminishing returns. The 300 and 600 intervals overlap strongly, so the two are not clearly different, and 300 simulations is a good trade-off. Search time does not grow in proportion to the budget (12 times more simulations took about twice the time), so part of each search is a fixed cost.
+More search means a better plan, with diminishing returns. The 300 and 600 intervals overlap strongly, so the two are not clearly different, and 300 simulations is a good trade-off. Search time does not grow in proportion to the budget (12 times more simulations took about 2.5 times the time), so part of each search is a fixed cost.
 
 ### Results: the Mind Flayer
 
@@ -429,7 +430,7 @@ tests/                      Automated tests
 - **Two levels for Eleven.** MCTS decides the goal and A\* walks to it. Searching over individual moves would need a far deeper tree for the same plan.
 - **Fast stand-ins inside searches.** Inside MCTS, the enemies follow a cheap policy so that 300 simulations stay fast. The real game still uses A\* and Minimax for them.
 - **The Mind Flayer is not on the board.** It acts on the map, so the final attack needs no adjacency.
-- **Will is rescued last.** In our experiments, with the current Eleven AI, rescuing Will early (waking the Mind Flayer early) made the game unwinnable (0 of 30 wins against 83% with the rule). This holds even with the Mind Flayer switched off, so the cause is Eleven's plan after the early final attack, not the Mind Flayer's actions.
+- **Will is rescued last.** With Will rescued in any order, Eleven won 0 of 30 games, against 83% with Will last. The same 0% occurred with the Mind Flayer switched off, so the Mind Flayer's actions are not the cause. The exact cause is not yet traced.
 - **Corruption lasts 2 turns.** Three turns made the game much harder (about 4 of 20 wins against about 12 of 20 in early tests), and a corrupted cell is never permanent.
 - **Fixed walls, random placements.** Random walls could produce unwinnable boards. Random placements on a known-good maze keep the game fair and varied.
 - **No fog of war.** It would make Eleven's search far harder without adding to the algorithm demonstration.
