@@ -29,9 +29,9 @@ MCTS_ROLLOUT_DEPTH = 15
 
 # --- Game flow ---
 MAX_TURNS = 150
-STUCK_TURNS_LIMIT = 3            # Eleven loses after this many turns in a row with no way to move, fight, rescue or teleport
-RNG_SEED = 42
-RANDOM_SEED_PER_GAME = True      # UI: every new game gets its own seed (shown on screen); False = always RNG_SEED
+STUCK_TURNS_LIMIT = 5            # Eleven loses after this many turns in a row with no way to move, fight, rescue or teleport (buffer for 2-turn corruption)
+RNG_SEED = 1000
+RANDOM_SEED_PER_GAME = False     # UI: False = default to fixed RNG_SEED (seed 1000); True = pick a random seed each game
 
 # --- Characters ---
 RESCUE_RANGE = 1                  # Manhattan distance within which Eleven can rescue a friend
